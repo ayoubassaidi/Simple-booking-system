@@ -1,0 +1,75 @@
+{% extends 'accounts/base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <!-- User Registration Card -->
+        <div class="col-md-5 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="bi bi-person-circle" style="font-size: 5rem; color: #667eea;"></i>
+                    </div>
+                    <h3 class="card-title mb-3">Register as User</h3>
+                    <p class="card-text text-muted mb-4">
+                        For booking services
+                    </p>
+                    <a href="{% url 'register_user' %}" class="btn btn-lg w-100"
+                       style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                              color: white; border: none; border-radius: 10px;">
+                        Get Started
+                        <i class="bi bi-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Service Provider Registration Card -->
+        <div class="col-md-5 mb-4">
+            <div class="card h-100">
+                <div class="card-body text-center p-5">
+                    <div class="mb-4">
+                        <i class="bi bi-briefcase-fill" style="font-size: 5rem; color: #764ba2;"></i>
+                    </div>
+                    <h3 class="card-title mb-3">Register as Service Provider</h3>
+                    <p class="card-text text-muted mb-4">
+                        For offering services
+                    </p>
+                    <a href="{% url 'register_provider' %}" class="btn btn-lg w-100"
+                       style="background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+                              color: white; border: none; border-radius: 10px;">
+                        Get Started
+                        <i class="bi bi-arrow-right ms-2"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Section -->
+    <div class="row mt-5">
+        <div class="col-12 text-center">
+            <div class="mb-3">
+                <p style="color: rgba(255, 255, 255, 0.9); font-size: 1.1rem; margin-bottom: 15px;">
+                    Already have an account?
+                </p>
+                <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg px-5"
+                   style="border-radius: 50px; border: 2px solid white; font-weight: 600;">
+                    <i class="bi bi-box-arrow-in-right me-2"></i>
+                    Sign In
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Optional Features Section -->
+    <div class="row mt-4">
+        <div class="col-12 text-center">
+            <p style="color: rgba(255, 255, 255, 0.8);">
+                <i class="bi bi-shield-check me-2"></i>
+                Secure and easy registration process
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
