@@ -19,4 +19,10 @@ urlpatterns = [
     # Profile & Notifications
     path('profile/', views.profile, name='profile'),
     path('notifications/', views.notifications, name='notifications'),
+
+    # Superadmin Routes
+    path('superadmin/', views.superadmin_dashboard, name='superadmin_dashboard'),
+    path('superadmin/users/', views.superadmin_users, name='superadmin_users'),
+    path('superadmin/services/', views.superadmin_services, name='superadmin_services'),
+    path('superadmin/notifications/', views.superadmin_notifications, name='superadmin_notifications'),
 ]

@@ -52,6 +52,14 @@
                     <span>Profile</span>
                 </a>
             </li>
+            {% if user.userprofile.user_type == 'superadmin' %}
+            <li>
+                <a href="{% url 'superadmin_dashboard' %}">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Superadmin Panel</span>
+                </a>
+            </li>
+            {% endif %}
             {% if user.userprofile.user_type == 'provider' %}
             <li>
                 <a href="{% url 'my_services' %}">
