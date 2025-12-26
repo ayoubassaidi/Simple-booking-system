@@ -35,7 +35,7 @@ def custom_login(request):
                         messages.error(request, 'You are not allowed to login with this panel. This account is registered as a Service Provider. Please select "Provider" to login.')
                     else:
                         messages.error(request, 'You are not allowed to login with this panel. This account is registered as a User. Please select "User" to login.')
-                    return render(request, 'login.html')
+                    return redirect('login')
 
                 # Account type matches - login successful
                 login(request, user)
@@ -48,7 +48,7 @@ def custom_login(request):
         else:
             # Invalid credentials
             messages.error(request, 'Invalid username or password.')
-            return render(request, 'login.html')
+            return redirect('login')
 
     return render(request, 'login.html')
 
