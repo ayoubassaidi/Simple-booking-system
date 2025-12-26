@@ -217,6 +217,14 @@ def dashboard(request):
             date__gte=first_day_of_month
         ).aggregate(total=Sum('price'))['total'] or 0
 
+        # Calculate total hours booked
+        total_hours = 0
+        for booking in provider_bookings.filter(Q(status='completed') | Q(status='confirmed')):
+            start_datetime = datetime.combine(booking.date, booking.start_time)
+            end_datetime = datetime.combine(booking.date, booking.end_time)
+            duration = (end_datetime - start_datetime).total_seconds() / 3600
+            total_hours += duration
+
         context.update({
             'total_bookings': total_bookings,
             'total_revenue': total_revenue,
@@ -226,6 +234,7 @@ def dashboard(request):
             'recent_bookings': recent_bookings,
             'active_services': active_services,
             'month_revenue': month_revenue,
+            'total_hours': round(total_hours, 1),
         })
 
     # User (Customer) Dashboard Statistics
@@ -264,6 +273,14 @@ def dashboard(request):
             status='completed'
         ).aggregate(total=Sum('price'))['total'] or 0
 
+        # Calculate total hours booked
+        total_hours = 0
+        for booking in customer_bookings.filter(Q(status='completed') | Q(status='confirmed')):
+            start_datetime = datetime.combine(booking.date, booking.start_time)
+            end_datetime = datetime.combine(booking.date, booking.end_time)
+            duration = (end_datetime - start_datetime).total_seconds() / 3600
+            total_hours += duration
+
         context.update({
             'total_bookings': total_bookings,
             'upcoming_bookings': upcoming_bookings,
@@ -272,6 +289,7 @@ def dashboard(request):
             'completed_bookings': completed_bookings,
             'pending_bookings': pending_bookings,
             'total_spent': total_spent,
+            'total_hours': round(total_hours, 1),
         })
 
     return render(request, 'accounts/dashboard.html', context)

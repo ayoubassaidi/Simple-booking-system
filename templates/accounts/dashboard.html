@@ -73,6 +73,13 @@
                             <span>Pending</span>
                         </div>
                     </div>
+                    <div class="quick-stat-item">
+                        <i class="bi bi-clock-fill"></i>
+                        <div>
+                            <strong>{{ total_hours }}h</strong>
+                            <span>Total Hours Booked</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -210,6 +217,49 @@
         <h6>Total Spent</h6>
         <p class="stat-value">€{{ total_spent|floatformat:2 }}</p>
         <small class="stat-change">On services</small>
+    </div>
+</div>
+
+<!-- User Quick Stats Row -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="info-card">
+            <div class="card-header-custom">
+                <i class="bi bi-graph-up"></i> Quick Overview
+            </div>
+            <div class="card-body">
+                <div class="quick-stats">
+                    <div class="quick-stat-item">
+                        <i class="bi bi-calendar-check"></i>
+                        <div>
+                            <strong>{{ total_bookings }}</strong>
+                            <span>Total Bookings</span>
+                        </div>
+                    </div>
+                    <div class="quick-stat-item">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>
+                            <strong>{{ completed_bookings }}</strong>
+                            <span>Completed</span>
+                        </div>
+                    </div>
+                    <div class="quick-stat-item">
+                        <i class="bi bi-hourglass-split"></i>
+                        <div>
+                            <strong>{{ pending_bookings }}</strong>
+                            <span>Pending</span>
+                        </div>
+                    </div>
+                    <div class="quick-stat-item">
+                        <i class="bi bi-clock-fill"></i>
+                        <div>
+                            <strong>{{ total_hours }}h</strong>
+                            <span>Total Hours Booked</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
