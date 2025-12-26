@@ -21,6 +21,22 @@
     {% block extra_css %}{% endblock %}
 </head>
 <body>
+    <!-- Navigation Header -->
+    <header class="header-nav">
+        <div class="container">
+            <a href="{% url 'home' %}" class="logo">Smart Booking</a>
+            <div class="nav-buttons">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="nav-btn nav-btn-login">Dashboard</a>
+                    <a href="{% url 'logout' %}" class="nav-btn nav-btn-register">Logout</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="nav-btn nav-btn-login">Login</a>
+                    <a href="{% url 'index' %}" class="nav-btn nav-btn-register">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
     {% block body_content %}
     <div class="main-container">
         <div class="header-section">
