@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login
+from django.contrib.auth import login, authenticate
 from django.contrib.auth.decorators import login_required
+from django.contrib import messages
 from .models import UserProfile
 from .forms import UserRegistrationForm, ProviderRegistrationForm
 
@@ -10,6 +11,46 @@ from .forms import UserRegistrationForm, ProviderRegistrationForm
 def home(request):
     """Home/landing page"""
     return render(request, 'home.html')
+
+
+def custom_login(request):
+    """Custom login view with account type validation"""
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        account_type = request.POST.get('account_type', 'user')
+
+        # Authenticate the user
+        user = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            # Check if user has a profile
+            try:
+                user_profile = UserProfile.objects.get(user=user)
+
+                # Validate account type matches
+                if user_profile.user_type != account_type:
+                    # Wrong account type selected
+                    if account_type == 'user':
+                        messages.error(request, 'You are not allowed to login with this panel. This account is registered as a Service Provider. Please select "Provider" to login.')
+                    else:
+                        messages.error(request, 'You are not allowed to login with this panel. This account is registered as a User. Please select "User" to login.')
+                    return render(request, 'login.html')
+
+                # Account type matches - login successful
+                login(request, user)
+                return redirect('dashboard')
+
+            except UserProfile.DoesNotExist:
+                # No profile found - allow login anyway
+                login(request, user)
+                return redirect('dashboard')
+        else:
+            # Invalid credentials
+            messages.error(request, 'Invalid username or password.')
+            return render(request, 'login.html')
+
+    return render(request, 'login.html')
 
 
 def index(request):

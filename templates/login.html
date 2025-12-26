@@ -223,11 +223,13 @@
             <p>Sign in to access your dashboard</p>
         </div>
 
-        {% if form.errors %}
-        <div class="alert alert-danger" role="alert">
-            <i class="bi bi-exclamation-triangle-fill me-2"></i>
-            <strong>Login Failed:</strong> Invalid username or password.
-        </div>
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-danger" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <strong>Error:</strong> {{ message }}
+            </div>
+            {% endfor %}
         {% endif %}
 
         <form method="post">
