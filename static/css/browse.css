@@ -32,6 +32,19 @@
 .nav-buttons {
     display: flex;
     gap: 15px;
+    align-items: center;
+}
+
+.user-type-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 15px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
 }
 
 .nav-btn {
@@ -302,6 +315,11 @@
 
     .nav-buttons {
         gap: 10px;
+    }
+
+    .user-type-badge {
+        padding: 6px 10px;
+        font-size: 0.8rem;
     }
 
     .nav-btn {

@@ -22,6 +22,13 @@
             <a href="{% url 'home' %}" class="logo">Smart Booking</a>
             <div class="nav-buttons">
                 {% if user.is_authenticated %}
+                    <span class="user-type-badge">
+                        {% if user.userprofile.user_type == 'provider' %}
+                            <i class="bi bi-briefcase-fill"></i> Service Provider
+                        {% else %}
+                            <i class="bi bi-person-circle"></i> User
+                        {% endif %}
+                    </span>
                     <a href="{% url 'dashboard' %}" class="nav-btn nav-btn-login">Dashboard</a>
                     <a href="{% url 'logout' %}" class="nav-btn nav-btn-register">Logout</a>
                 {% else %}
