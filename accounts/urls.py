@@ -14,4 +14,6 @@ urlpatterns = [
 
     # Dashboard (protected by login_required)
     path('dashboard/', views.dashboard, name='dashboard'),
+
+
 ]

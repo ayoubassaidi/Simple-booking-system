@@ -6,6 +6,7 @@ from .forms import UserRegistrationForm, ProviderRegistrationForm
 
 # Create your views here.
 
+
 def index(request):
     """Landing page where users choose their account type"""
     return render(request, 'accounts/index.html')
