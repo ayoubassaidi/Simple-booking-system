@@ -1,83 +1,10 @@
-{% extends 'accounts/base.html' %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Success - Smart Service Booking{% endblock %}
 
 {% block extra_css %}
-<style>
-    .success-card {
-        background: white;
-        border-radius: 15px;
-        padding: 60px 40px;
-        max-width: 600px;
-        margin: 0 auto;
-        text-align: center;
-    }
-
-    .success-icon {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #52c234 0%, #42a628 100%);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 30px;
-        animation: scaleIn 0.5s ease-out;
-    }
-
-    .success-icon i {
-        font-size: 3.5rem;
-        color: white;
-    }
-
-    @keyframes scaleIn {
-        from {
-            transform: scale(0);
-            opacity: 0;
-        }
-        to {
-            transform: scale(1);
-            opacity: 1;
-        }
-    }
-
-    .success-title {
-        color: #333;
-        font-weight: 700;
-        margin-bottom: 20px;
-    }
-
-    .success-message {
-        color: #666;
-        font-size: 1.1rem;
-        margin-bottom: 30px;
-    }
-
-    .user-info {
-        background: #f8f9fa;
-        border-radius: 10px;
-        padding: 20px;
-        margin: 30px 0;
-    }
-
-    .btn-dashboard {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border: none;
-        border-radius: 10px;
-        padding: 12px 30px;
-        font-size: 1.1rem;
-        font-weight: 600;
-        text-decoration: none;
-        display: inline-block;
-        transition: all 0.3s ease;
-    }
-
-    .btn-dashboard:hover {
-        background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
-        color: white;
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
-    }
-</style>
+<link rel="stylesheet" href="{% static 'css/success.css' %}">
 {% endblock %}
 
 {% block content %}
@@ -111,7 +38,7 @@
     <!-- Next Steps -->
     <div class="mt-4">
         <h5 class="mb-3">What's Next?</h5>
-        <ul class="list-unstyled text-start" style="max-width: 400px; margin: 0 auto;">
+        <ul class="list-unstyled">
             {% if user.userprofile.user_type == 'user' %}
                 <li class="mb-2">
                     <i class="bi bi-check2 text-success me-2"></i>
@@ -144,16 +71,16 @@
 
     <!-- Action Button -->
     <div class="mt-4">
-        <a href="/" class="btn-dashboard">
+        <a href="{% url 'dashboard' %}" class="btn-dashboard">
             <i class="bi bi-speedometer2 me-2"></i>
             Go to Dashboard
         </a>
     </div>
 
     <div class="mt-4">
-        <a href="{% url 'index' %}" class="text-muted text-decoration-none">
-            <small>or go back to home</small>
-        </a>
+        <p class="text-muted">
+            <small>or <a href="{% url 'home' %}">go back to home</a></small>
+        </p>
     </div>
 </div>
 {% endblock %}

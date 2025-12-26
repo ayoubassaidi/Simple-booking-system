@@ -1,0 +1,196 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Providers - Smart Service Booking</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+
+    <!-- Global Browse CSS -->
+    <link rel="stylesheet" href="{% static 'css/browse.css' %}">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <header class="header-nav">
+        <div class="container">
+            <a href="{% url 'home' %}" class="logo">Smart Booking</a>
+            <div class="nav-buttons">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="nav-btn nav-btn-login">Dashboard</a>
+                    <a href="{% url 'logout' %}" class="nav-btn nav-btn-register">Logout</a>
+                {% else %}
+                    <a href="{% url 'login' %}" class="nav-btn nav-btn-login">Login</a>
+                    <a href="{% url 'index' %}" class="nav-btn nav-btn-register">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </header>
+
+    <!-- Search Hero Section -->
+    <section class="search-hero">
+        <h1>Browse Service Providers</h1>
+
+        <!-- Search Form -->
+        <form method="get" class="search-form">
+            <div class="row g-3">
+                <!-- Service Type Dropdown -->
+                <div class="col-md-4">
+                    <label for="service_type">
+                        <i class="bi bi-search"></i> Service Type
+                    </label>
+                    <select name="service_type" id="service_type" class="form-select">
+                        <option value="">All Services</option>
+                        {% for value, label in service_choices %}
+                        <option value="{{ value }}" {% if selected_service == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Location Dropdown -->
+                <div class="col-md-4">
+                    <label for="location">
+                        <i class="bi bi-geo-alt"></i> Location
+                    </label>
+                    <select name="location" id="location" class="form-select">
+                        <option value="">All Locations</option>
+                        {% for value, label in location_choices %}
+                        <option value="{{ value }}" {% if selected_location == value %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Search Button -->
+                <div class="col-md-4">
+                    <label>&nbsp;</label>
+                    <button type="submit" class="btn btn-search-submit">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </div>
+        </form>
+    </section>
+
+    <!-- Results Section -->
+    <section class="results-section">
+        <div class="container">
+            <!-- Results Header -->
+            <div class="results-header">
+                <h2>Browse Service Providers</h2>
+
+                <!-- Sort Dropdown -->
+                <div class="sort-dropdown">
+                    <label for="sort_by">Sort by:</label>
+                    <select id="sort_by" name="sort_by" class="form-select" onchange="this.form.submit()">
+                        <option value="rating" {% if selected_sort == 'rating' %}selected{% endif %}>Rating</option>
+                        <option value="experience" {% if selected_sort == 'experience' %}selected{% endif %}>Experience</option>
+                        <option value="jobs" {% if selected_sort == 'jobs' %}selected{% endif %}>Jobs Completed</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Active Filters -->
+            {% if selected_service or selected_location %}
+            <div class="filter-pills">
+                {% if selected_service %}
+                <span class="filter-pill">
+                    {{ selected_service|upper }}
+                    <a href="?location={{ selected_location }}&sort_by={{ selected_sort }}" class="remove">✕</a>
+                </span>
+                {% endif %}
+
+                {% if selected_location %}
+                <span class="filter-pill">
+                    {{ selected_location|upper }}
+                    <a href="?service_type={{ selected_service }}&sort_by={{ selected_sort }}" class="remove">✕</a>
+                </span>
+                {% endif %}
+
+                <a href="?" class="btn btn-clear-all">Clear All</a>
+            </div>
+            {% endif %}
+
+            <!-- Provider Cards -->
+            {% if providers %}
+                {% for provider in providers %}
+                <div class="provider-card">
+                    <div class="row">
+                        <!-- Provider Image -->
+                        <div class="col-md-2">
+                            {% if provider.image_url %}
+                            <img src="{{ provider.image_url }}" alt="{{ provider.name }}" class="provider-image">
+                            {% else %}
+                            <div class="provider-image" style="background: #667eea; display: flex; align-items: center; justify-content: center; color: white; font-size: 3rem;">
+                                <i class="bi bi-person-circle"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Provider Info -->
+                        <div class="col-md-7">
+                            <div class="provider-info">
+                                <h3>{{ provider.name }}</h3>
+
+                                <div class="provider-meta">
+                                    <div class="meta-item">
+                                        <i class="bi bi-briefcase"></i>
+                                        <strong>Service Type:</strong> {{ provider.get_service_type_display }}
+                                    </div>
+
+                                    <div class="meta-item">
+                                        <i class="bi bi-geo-alt"></i>
+                                        {{ provider.get_location_display }}
+                                    </div>
+                                </div>
+
+                                <p class="provider-description">{{ provider.description }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Provider Actions -->
+                        <div class="col-md-3 text-end">
+                            <div class="star-rating">
+                                ⭐⭐⭐⭐⭐
+                                <span class="rating-number">{{ provider.rating }}</span>
+                            </div>
+
+                            <div class="mt-3">
+                                <button class="btn btn-view-availability">
+                                    <i class="bi bi-calendar"></i> View Availability
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <!-- Empty State -->
+                <div class="empty-state">
+                    <i class="bi bi-search"></i>
+                    <h3>No Providers Found</h3>
+                    <p>Try adjusting your search filters</p>
+                    <a href="?" class="btn btn-primary mt-3">Clear Filters</a>
+                </div>
+            {% endif %}
+        </div>
+    </section>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Simple JavaScript for sort -->
+    <script>
+        // Auto submit form when sort changes
+        document.getElementById('sort_by').form = document.querySelector('form');
+    </script>
+</body>
+</html>

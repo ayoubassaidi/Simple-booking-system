@@ -1,0 +1,121 @@
+/* Success Page Styles */
+
+.success-card {
+    background: white;
+    border-radius: 15px;
+    padding: 60px 40px;
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+}
+
+.success-icon {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #52c234 0%, #42a628 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 30px;
+    animation: scaleIn 0.5s ease-out;
+}
+
+.success-icon i {
+    font-size: 3.5rem;
+    color: white;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.success-title {
+    color: #333;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.success-message {
+    color: #666;
+    font-size: 1.1rem;
+    margin-bottom: 30px;
+}
+
+.user-info {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 30px 0;
+}
+
+.user-info p {
+    margin-bottom: 8px;
+}
+
+.user-info strong {
+    color: #333;
+}
+
+.success-card h5 {
+    color: #333;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+.success-card ul {
+    text-align: left;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.success-card ul li {
+    margin-bottom: 10px;
+    color: #666;
+}
+
+.success-card ul li i {
+    color: #28a745;
+}
+
+.btn-dashboard {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    padding: 14px 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    transition: all 0.3s ease;
+    margin-top: 20px;
+}
+
+.btn-dashboard:hover {
+    background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+
+.success-card .text-muted {
+    font-size: 0.9rem;
+    color: #6c757d !important;
+}
+
+.success-card .text-muted a {
+    color: #667eea;
+    text-decoration: none;
+}
+
+.success-card .text-muted a:hover {
+    text-decoration: underline;
+}

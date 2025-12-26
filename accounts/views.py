@@ -7,6 +7,11 @@ from .forms import UserRegistrationForm, ProviderRegistrationForm
 # Create your views here.
 
 
+def home(request):
+    """Home/landing page"""
+    return render(request, 'home.html')
+
+
 def index(request):
     """Landing page where users choose their account type"""
     return render(request, 'accounts/index.html')
@@ -31,7 +36,7 @@ def register_user(request):
 
             # Log the user in
             login(request, user)
-            return redirect('dashboard')
+            return redirect('success')
     else:
         form = UserRegistrationForm()
 
@@ -63,7 +68,7 @@ def register_provider(request):
 
             # Log the user in
             login(request, user)
-            return redirect('dashboard')
+            return redirect('success')
     else:
         form = ProviderRegistrationForm()
 
