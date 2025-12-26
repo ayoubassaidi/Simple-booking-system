@@ -1,0 +1,57 @@
+{% extends "accounts/dashboard_base.html" %}
+
+{% block dashboard_content %}
+
+<div class="main-section">
+    <h4 class="section-title">
+        <i class="bi bi-calendar-plus"></i> Add Availability
+    </h4>
+
+    <form method="post" class="row g-3 mb-4">
+        {% csrf_token %}
+
+        <div class="col-md-4">
+            <label>Date</label>
+            <input type="date" name="date" class="form-control" required>
+        </div>
+
+        <div class="col-md-4">
+            <label>Start Time</label>
+            <input type="time" name="start_time" class="form-control" required>
+        </div>
+
+        <div class="col-md-4">
+            <label>End Time</label>
+            <input type="time" name="end_time" class="form-control" required>
+        </div>
+
+        <div class="col-12">
+            <button class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add Slot
+            </button>
+        </div>
+    </form>
+
+    <h5>Your Availability</h5>
+
+    {% if slots %}
+    <table class="table">
+        <tr>
+            <th>Date</th>
+            <th>Start</th>
+            <th>End</th>
+        </tr>
+        {% for slot in slots %}
+        <tr>
+            <td>{{ slot.date }}</td>
+            <td>{{ slot.start_time }}</td>
+            <td>{{ slot.end_time }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    {% else %}
+        <p>No availability added yet.</p>
+    {% endif %}
+</div>
+
+{% endblock %}
