@@ -15,4 +15,8 @@ urlpatterns = [
 
     # Dashboard (protected by login_required)
     path('dashboard/', views.dashboard, name='dashboard'),
+
+    # Profile & Notifications
+    path('profile/', views.profile, name='profile'),
+    path('notifications/', views.notifications, name='notifications'),
 ]

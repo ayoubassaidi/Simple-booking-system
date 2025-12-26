@@ -1,0 +1,538 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block title %}View Availability - {{ service.name }}{% endblock %}
+
+{% block page_title %}View Availability{% endblock %}
+{% block page_subtitle %}Select a date and time to book {{ service.name }}{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'browse_providers' %}" class="btn btn-outline-primary btn-header">
+    <i class="bi bi-arrow-left me-2"></i>Back to Browse
+</a>
+{% endblock %}
+
+{% block dashboard_content %}
+<!-- Provider Info Card -->
+<div class="provider-info-card mb-4">
+    <div class="d-flex align-items-start gap-3">
+        <div class="provider-avatar">
+            <i class="bi bi-person-circle"></i>
+        </div>
+        <div class="flex-grow-1">
+            <h3 class="provider-name">{{ service.name }}</h3>
+            <div class="provider-meta">
+                <span class="meta-item">
+                    <i class="bi bi-star-fill text-warning"></i>
+                    <strong>{{ service.provider.userprofile.rating|default:"4.8" }}</strong>
+                </span>
+                <span class="meta-item">
+                    <i class="bi bi-tag"></i>
+                    Service Type: <strong>{{ service.get_category_display }}</strong>
+                </span>
+                <span class="meta-item">
+                    <i class="bi bi-clock"></i>
+                    Duration: <strong>{{ service.duration }} min</strong>
+                </span>
+            </div>
+            <p class="provider-description">{{ service.description }}</p>
+        </div>
+        <div class="provider-price">
+            <div class="price-label">Price</div>
+            <div class="price-amount">€{{ service.price }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Select Date & Time Section -->
+<div class="availability-section">
+    <div class="section-header mb-3">
+        <h4>Select Date & Time</h4>
+        <span class="month-year">{{ selected_date|date:"F Y" }}</span>
+    </div>
+
+    <!-- Week Calendar -->
+    <div class="week-calendar mb-4">
+        {% for day in week_dates %}
+        <a href="?date={{ day.date|date:'Y-m-d' }}"
+           class="day-card {% if day.is_selected %}active{% endif %}">
+            <div class="day-name">{{ day.day_name }}</div>
+            <div class="day-number">{{ day.day_num }}</div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Available Time Slots -->
+    <div class="time-slots-section">
+        <h5 class="mb-3">
+            <i class="bi bi-clock"></i> Available Time Slots
+        </h5>
+
+        <div class="time-slots-grid" id="timeSlotsGrid">
+            {% for slot in time_slots %}
+            <button type="button"
+                    class="time-slot {% if slot.is_available %}available{% else %}booked{% endif %}"
+                    data-time="{{ slot.time }}"
+                    data-display="{{ slot.display_time }}"
+                    {% if not slot.is_available %}disabled{% endif %}>
+                {{ slot.display_time }}
+            </button>
+            {% endfor %}
+        </div>
+
+        <!-- Legend -->
+        <div class="slots-legend mt-3">
+            <div class="legend-item">
+                <span class="legend-box available"></span>
+                <span>Available</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-box booked"></span>
+                <span>Booked</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-box selected"></span>
+                <span>Selected</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Selected Time Summary -->
+    <div class="selected-time-card mt-4" id="selectedTimeCard" style="display: none;">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <div class="selected-label">Selected Time</div>
+                <div class="selected-info">
+                    <i class="bi bi-calendar-check"></i>
+                    <span id="selectedDateTime"></span>
+                </div>
+            </div>
+            <button type="button" class="btn-clear-selection" id="clearSelection">
+                <i class="bi bi-x-circle"></i> Clear
+            </button>
+        </div>
+    </div>
+
+    <!-- Service Location -->
+    <div class="location-card mt-4">
+        <i class="bi bi-geo-alt-fill"></i>
+        <div>
+            <div class="location-label">Service Location</div>
+            <div class="location-text">{{ service.provider.userprofile.city|default:"Amsterdam" }}, Netherlands</div>
+        </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="action-buttons mt-4">
+        <a href="{% url 'browse_providers' %}" class="btn btn-secondary btn-lg">
+            <i class="bi bi-arrow-left me-2"></i>Back
+        </a>
+        <button type="button" class="btn btn-primary btn-lg" id="continueBooking" disabled>
+            Continue to Booking
+        </button>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Provider Info Card */
+.provider-info-card {
+    background: white;
+    border-radius: 16px;
+    padding: 25px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.provider-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 3rem;
+}
+
+.provider-name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 8px;
+}
+
+.provider-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.meta-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #718096;
+    font-size: 0.9rem;
+}
+
+.meta-item i {
+    color: #667eea;
+}
+
+.provider-description {
+    color: #4a5568;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.provider-price {
+    text-align: right;
+}
+
+.price-label {
+    font-size: 0.85rem;
+    color: #718096;
+    margin-bottom: 4px;
+}
+
+.price-amount {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #667eea;
+}
+
+/* Availability Section */
+.availability-section {
+    background: white;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.section-header h4 {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0;
+}
+
+.month-year {
+    color: #718096;
+    font-weight: 600;
+}
+
+/* Week Calendar */
+.week-calendar {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+}
+
+.day-card {
+    background: white;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 15px 10px;
+    text-align: center;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.day-card:hover {
+    border-color: #667eea;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.day-card.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.day-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #718096;
+    margin-bottom: 5px;
+}
+
+.day-card.active .day-name {
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.day-number {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.day-card.active .day-number {
+    color: white;
+}
+
+/* Time Slots */
+.time-slots-section h5 {
+    color: #2d3748;
+    font-weight: 700;
+}
+
+.time-slots-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+    gap: 12px;
+}
+
+.time-slot {
+    background: #f7fafc;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 15px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: #718096;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.time-slot.available {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-color: #667eea;
+    color: #667eea;
+}
+
+.time-slot.available:hover {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+}
+
+.time-slot.available.selected {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+    color: white;
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.time-slot.booked {
+    background: #e2e8f0;
+    border-color: #cbd5e0;
+    color: #a0aec0;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Legend */
+.slots-legend {
+    display: flex;
+    gap: 20px;
+    padding: 15px;
+    background: #f7fafc;
+    border-radius: 10px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    color: #4a5568;
+}
+
+.legend-box {
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    border: 2px solid #e2e8f0;
+}
+
+.legend-box.available {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border-color: #667eea;
+}
+
+.legend-box.booked {
+    background: #e2e8f0;
+    border-color: #cbd5e0;
+}
+
+.legend-box.selected {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-color: #667eea;
+}
+
+/* Selected Time Card */
+.selected-time-card {
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    border: 2px solid #667eea;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.selected-label {
+    font-size: 0.85rem;
+    color: #718096;
+    margin-bottom: 5px;
+}
+
+.selected-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #667eea;
+}
+
+.selected-info i {
+    font-size: 1.3rem;
+}
+
+.btn-clear-selection {
+    background: white;
+    border: 2px solid #667eea;
+    color: #667eea;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-clear-selection:hover {
+    background: #667eea;
+    color: white;
+}
+
+/* Location Card */
+.location-card {
+    background: linear-gradient(135deg, rgba(66, 153, 225, 0.1) 0%, rgba(49, 130, 206, 0.1) 100%);
+    border: 2px solid #4299e1;
+    border-radius: 12px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.location-card > i {
+    font-size: 2rem;
+    color: #4299e1;
+}
+
+.location-label {
+    font-size: 0.85rem;
+    color: #718096;
+    margin-bottom: 4px;
+}
+
+.location-text {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 15px;
+}
+
+.action-buttons .btn {
+    flex: 1;
+    padding: 15px;
+    font-weight: 600;
+    border-radius: 10px;
+}
+
+#continueBooking:disabled {
+    background: #cbd5e0;
+    border-color: #cbd5e0;
+    cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .week-calendar {
+        grid-template-columns: repeat(4, 1fr);
+    }
+
+    .time-slots-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .provider-info-card .d-flex {
+        flex-direction: column;
+    }
+
+    .provider-price {
+        text-align: left;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const timeSlots = document.querySelectorAll('.time-slot.available');
+    const selectedTimeCard = document.getElementById('selectedTimeCard');
+    const selectedDateTime = document.getElementById('selectedDateTime');
+    const continueBooking = document.getElementById('continueBooking');
+    const clearSelection = document.getElementById('clearSelection');
+    const selectedDate = "{{ selected_date|date:'D, M d, Y' }}";
+
+    let selectedTime = null;
+
+    // Handle time slot selection
+    timeSlots.forEach(slot => {
+        slot.addEventListener('click', function() {
+            // Remove previous selection
+            timeSlots.forEach(s => s.classList.remove('selected'));
+
+            // Add selection to clicked slot
+            this.classList.add('selected');
+
+            // Get selected time
+            selectedTime = this.dataset.display;
+
+            // Show selected time card
+            selectedDateTime.textContent = `${selectedDate} at ${selectedTime}`;
+            selectedTimeCard.style.display = 'block';
+
+            // Enable continue button
+            continueBooking.disabled = false;
+        });
+    });
+
+    // Clear selection
+    clearSelection.addEventListener('click', function() {
+        timeSlots.forEach(s => s.classList.remove('selected'));
+        selectedTimeCard.style.display = 'none';
+        continueBooking.disabled = true;
+        selectedTime = null;
+    });
+
+    // Continue to booking
+    continueBooking.addEventListener('click', function() {
+        if (selectedTime) {
+            alert('Proceeding to booking confirmation...\n\nService: {{ service.name }}\nDate: ' + selectedDate + '\nTime: ' + selectedTime);
+            // TODO: Navigate to booking confirmation page
+        }
+    });
+});
+</script>
+{% endblock %}

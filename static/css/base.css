@@ -24,7 +24,7 @@
 .header-nav .logo {
     font-size: 1.8rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -42,7 +42,7 @@
     align-items: center;
     gap: 5px;
     padding: 8px 15px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
     color: white;
     border-radius: 20px;
     font-size: 0.9rem;
@@ -58,29 +58,29 @@
 }
 
 .nav-btn-login {
-    color: #667eea;
+    color: #2563EB;
     background: transparent;
-    border: 2px solid #667eea;
+    border: 2px solid #2563EB;
 }
 
 .nav-btn-login:hover {
-    background: #667eea;
+    background: #2563EB;
     color: white;
 }
 
 .nav-btn-register {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
     color: white;
     border: 2px solid transparent;
 }
 
 .nav-btn-register:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 5px 15px rgba(37, 99, 235, 0.4);
 }
 
 body {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
     min-height: 100vh;
     display: flex;
     align-items: center;
@@ -132,13 +132,13 @@ body {
 }
 
 .form-control:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    border-color: #2563EB;
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
 }
 
 /* Button Styles */
 .btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
     border: none;
     border-radius: 10px;
     padding: 12px 30px;
@@ -148,7 +148,7 @@ body {
 
 .btn-primary:hover {
     transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.4);
 }
 
 .btn-outline-light {
@@ -160,7 +160,7 @@ body {
 
 .btn-outline-light:hover {
     background: white;
-    color: #667eea;
+    color: #2563EB;
     transform: translateY(-2px);
 }
 

@@ -7,50 +7,110 @@
         <i class="bi bi-calendar-plus"></i> Add Availability
     </h4>
 
-    <form method="post" class="row g-3 mb-4">
-        {% csrf_token %}
-
-        <div class="col-md-4">
-            <label>Date</label>
-            <input type="date" name="date" class="form-control" required>
+    {% if not provider_services %}
+    <div class="alert-modern alert-warning">
+        <i class="bi bi-exclamation-triangle"></i>
+        <div>
+            <strong>No Services Available</strong> - Please <a href="{% url 'add_service' %}" class="alert-link">add a service</a> first before creating availability slots.
         </div>
+    </div>
+    {% else %}
+    <div class="availability-form-card">
+        <form method="post">
+            {% csrf_token %}
 
-        <div class="col-md-4">
-            <label>Start Time</label>
-            <input type="time" name="start_time" class="form-control" required>
-        </div>
+            <div class="form-group-modern">
+                <label><i class="bi bi-grid-3x3"></i> Service</label>
+                <select name="service" class="form-select" required>
+                    <option value="">Select a service...</option>
+                    {% for service in provider_services %}
+                    <option value="{{ service.id }}">{{ service.name }} (€{{ service.price }} - {{ service.get_duration_display }})</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-        <div class="col-md-4">
-            <label>End Time</label>
-            <input type="time" name="end_time" class="form-control" required>
-        </div>
+            <div class="form-group-modern">
+                <label><i class="bi bi-calendar"></i> Date</label>
+                <input type="date" name="date" class="form-control" required>
+            </div>
 
-        <div class="col-12">
-            <button class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> Add Slot
+            <div class="form-group-modern">
+                <label><i class="bi bi-clock"></i> Start Time</label>
+                <input type="time" name="start_time" class="form-control" required>
+            </div>
+
+            <div class="form-group-modern">
+                <label><i class="bi bi-clock-fill"></i> End Time</label>
+                <input type="time" name="end_time" class="form-control" required>
+            </div>
+
+            <button type="submit" class="btn-add-slot">
+                <i class="bi bi-plus-circle"></i>
+                <span>Add Slot</span>
             </button>
-        </div>
-    </form>
+        </form>
+    </div>
+    {% endif %}
 
-    <h5>Your Availability</h5>
+    <div class="schedule-header">
+        <h5><i class="bi bi-calendar3"></i> Your Availability Schedule</h5>
+    </div>
 
     {% if slots %}
-    <table class="table">
-        <tr>
-            <th>Date</th>
-            <th>Start</th>
-            <th>End</th>
-        </tr>
-        {% for slot in slots %}
-        <tr>
-            <td>{{ slot.date }}</td>
-            <td>{{ slot.start_time }}</td>
-            <td>{{ slot.end_time }}</td>
-        </tr>
-        {% endfor %}
-    </table>
+    <div class="table-responsive">
+        <table class="table-modern">
+            <thead>
+                <tr>
+                    <th><i class="bi bi-grid-3x3"></i> Service</th>
+                    <th><i class="bi bi-calendar"></i> Date</th>
+                    <th><i class="bi bi-clock"></i> Start Time</th>
+                    <th><i class="bi bi-clock-fill"></i> End Time</th>
+                    <th><i class="bi bi-info-circle"></i> Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for slot in slots %}
+                <tr>
+                    <td>
+                        {% if slot.service %}
+                            <span class="service-badge-modern">
+                                <i class="bi bi-briefcase"></i>
+                                {{ slot.service.name }}
+                            </span>
+                        {% else %}
+                            <span class="service-badge-modern service-badge-general">
+                                <i class="bi bi-clock"></i>
+                                General Availability
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="date-display">{{ slot.date|date:"M d, Y" }}</td>
+                    <td class="time-display">{{ slot.start_time|time:"g:i A" }}</td>
+                    <td class="time-display">{{ slot.end_time|time:"g:i A" }}</td>
+                    <td>
+                        {% if slot.is_available %}
+                            <span class="status-badge-modern status-available">
+                                <i class="bi bi-check-circle-fill"></i>
+                                Available
+                            </span>
+                        {% else %}
+                            <span class="status-badge-modern status-booked">
+                                <i class="bi bi-x-circle-fill"></i>
+                                Booked
+                            </span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
-        <p>No availability added yet.</p>
+        <div class="empty-state-modern">
+            <i class="bi bi-calendar-x"></i>
+            <h6>No Availability Slots Yet</h6>
+            <p>Add your first slot above to get started!</p>
+        </div>
     {% endif %}
 </div>
 
