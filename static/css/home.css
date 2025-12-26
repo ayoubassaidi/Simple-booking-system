@@ -27,7 +27,7 @@ body {
 .logo {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #667eea;
+    color: #2563EB;
     text-decoration: none;
 }
 
@@ -50,29 +50,30 @@ body {
 
 .nav-btn-login {
     background: white;
-    color: #667eea;
-    border: 2px solid #667eea;
+    color: #2563EB;
+    border: 2px solid #2563EB;
 }
 
 .nav-btn-login:hover {
-    background: #667eea;
+    background: #2563EB;
     color: white;
+    transform: translateY(-2px);
 }
 
 .nav-btn-register {
-    background: #667eea;
+    background: #2563EB;
     color: white;
-    border: 2px solid #667eea;
+    border: 2px solid #2563EB;
 }
 
 .nav-btn-register:hover {
-    background: #5568d3;
-    border-color: #5568d3;
+    background: #1d4ed8;
+    border-color: #1d4ed8;
 }
 
 /* Hero Section */
 .hero-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
     padding: 100px 20px;
     text-align: center;
     color: white;
@@ -115,7 +116,7 @@ body {
 }
 
 .btn-search {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
     color: white;
     border: none;
     padding: 15px 35px;
@@ -145,12 +146,12 @@ body {
 
 .btn-browse {
     background: white;
-    color: #667eea;
+    color: #2563EB;
 }
 
 .btn-browse:hover {
     background: #f8f9fa;
-    color: #667eea;
+    color: #2563EB;
 }
 
 .btn-provider {
@@ -214,7 +215,7 @@ body {
 }
 
 .feature-card:nth-child(1) .feature-icon {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
     color: white;
 }
 
@@ -242,7 +243,7 @@ body {
 
 /* Auth Section */
 .auth-section {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
     padding: 100px 20px;
     text-align: center;
     color: white;
@@ -277,12 +278,12 @@ body {
 
 .btn-login-big {
     background: white;
-    color: #667eea;
+    color: #2563EB;
 }
 
 .btn-login-big:hover {
     background: #f8f9fa;
-    color: #667eea;
+    color: #2563EB;
 }
 
 .btn-register-big {
@@ -301,9 +302,292 @@ body {
     opacity: 0.85;
 }
 
+/* Categories Section */
+.categories-section {
+    background: white;
+    padding: 80px 20px;
+}
+
+.categories-section h2,
+.featured-section h2 {
+    text-align: center;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 10px;
+}
+
+.section-subtitle {
+    text-align: center;
+    font-size: 1.1rem;
+    color: #718096;
+    margin-bottom: 50px;
+}
+
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 25px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.category-card {
+    background: white;
+    padding: 30px 20px;
+    border-radius: 16px;
+    text-align: center;
+    border: 2px solid #e2e8f0;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.category-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.category-card:hover {
+    border-color: #667eea;
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.2);
+}
+
+.category-card:hover::before {
+    opacity: 0.05;
+}
+
+.category-icon {
+    width: 70px;
+    height: 70px;
+    margin: 0 auto 15px;
+    border-radius: 16px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+    transition: transform 0.3s ease;
+}
+
+.category-card:hover .category-icon {
+    transform: scale(1.1);
+}
+
+.category-card h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #2d3748;
+    margin-bottom: 8px;
+}
+
+.category-card p {
+    font-size: 0.9rem;
+    color: #718096;
+    margin: 0;
+}
+
+/* Featured Services Section */
+.featured-section {
+    background: #f7fafc;
+    padding: 80px 20px;
+}
+
+.services-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* New Service Cards - Matching Design */
+.service-card-new {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.service-card-new:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.2);
+}
+
+/* Category Header with Gradient Background */
+.category-header {
+    background: linear-gradient(135deg, #5b7dff 0%, #4a66ff 100%);
+    padding: 30px 25px 20px 25px;
+    border-radius: 20px 20px 0 0;
+}
+
+.category-pill {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.25);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    padding: 8px 18px;
+    border-radius: 25px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.category-pill i {
+    font-size: 0.7rem;
+}
+
+/* Card Content */
+.card-content {
+    padding: 30px 25px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.service-title-new {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1a202c;
+    margin-bottom: 15px;
+    line-height: 1.3;
+}
+
+.provider-badge-new {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f0f4ff;
+    color: #5b7dff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    width: fit-content;
+}
+
+.provider-badge-new i {
+    font-size: 1.1rem;
+}
+
+.service-desc-new {
+    color: #4a5568;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    flex-grow: 1;
+}
+
+/* Meta Info Box */
+.meta-box {
+    background: #f7fafc;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+}
+
+.meta-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #2d3748;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.meta-row i {
+    color: #5b7dff;
+    font-size: 1.1rem;
+}
+
+/* Price Section */
+.price-section-new {
+    text-align: right;
+    margin-bottom: 25px;
+}
+
+.price-label-new {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #718096;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.price-amount-new {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #5b7dff;
+    line-height: 1;
+}
+
+/* View Availability Button */
+.btn-view-availability {
+    background: linear-gradient(135deg, #5b7dff 0%, #4a66ff 100%);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 15px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(91, 125, 255, 0.3);
+}
+
+.btn-view-availability:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(91, 125, 255, 0.4);
+    color: white;
+}
+
+.btn-view-availability i {
+    font-size: 1.1rem;
+}
+
+.btn-view-all {
+    display: inline-block;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 40px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+}
+
+.btn-view-all:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    color: white;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
-    .features-grid {
+    .features-grid,
+    .categories-grid,
+    .services-grid {
         grid-template-columns: 1fr;
     }
 
@@ -333,5 +617,27 @@ body {
     .nav-btn {
         padding: 8px 20px;
         font-size: 0.9rem;
+    }
+
+    .categories-section h2,
+    .featured-section h2 {
+        font-size: 2rem;
+    }
+
+    /* Service Card Responsive */
+    .service-title-new {
+        font-size: 1.3rem;
+    }
+
+    .price-amount-new {
+        font-size: 2rem;
+    }
+
+    .category-header {
+        padding: 25px 20px 15px 20px;
+    }
+
+    .card-content {
+        padding: 25px 20px;
     }
 }

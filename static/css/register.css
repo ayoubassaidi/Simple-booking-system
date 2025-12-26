@@ -12,7 +12,7 @@
     width: 80px;
     height: 80px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -44,8 +44,8 @@
 }
 
 .registration-card .form-control:focus {
-    border-color: #667eea;
-    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+    border-color: #2563EB;
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
 }
 
 .registration-card .form-label {
@@ -54,7 +54,7 @@
 }
 
 .btn-register {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
     color: white;
     border: none;
     border-radius: 10px;
@@ -66,7 +66,7 @@
 }
 
 .btn-register:hover {
-    background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563EB 100%);
     color: white;
 }
 
@@ -92,7 +92,7 @@
 }
 
 .registration-card .text-center a {
-    color: #667eea;
+    color: #2563EB;
     text-decoration: none;
     font-weight: 500;
 }
