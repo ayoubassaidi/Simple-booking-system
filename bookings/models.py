@@ -258,4 +258,7 @@ class SearchQuery(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.query} ({self.results_count} results)"
+        return f"{self.provider.username} | {self.date} {self.start_time}-{self.end_time}"
+
+
+
