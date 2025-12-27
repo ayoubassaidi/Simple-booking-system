@@ -14,8 +14,6 @@ from .views import (
 urlpatterns = [
     path("add-availability/", add_availability, name="add_availability"),
     path("browse-providers/", browse_providers, name="browse_providers"),
-    path("provider/bookings/", provider_bookings, name="provider_bookings"),
-
     path("search/", search_services, name="search_services"),
     path("service/<int:service_id>/availability/", view_availability, name="view_availability"),
 
