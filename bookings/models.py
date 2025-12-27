@@ -50,43 +50,215 @@ class Provider(models.Model):
 
 class Availability(models.Model):
     provider = models.ForeignKey(User, on_delete=models.CASCADE)
+    service = models.ForeignKey('Service', on_delete=models.CASCADE, related_name='availability_slots', null=True, blank=True, help_text="Which service is available during this time")
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
     is_available = models.BooleanField(default=True)
 
+    class Meta:
+        verbose_name_plural = 'Availabilities'
+        ordering = ['date', 'start_time']
+
     def __str__(self):
-        return f"{self.provider.username} | {self.date} {self.start_time}-{self.end_time}"
+        service_info = f" - {self.service.name}" if self.service else ""
+        return f"{self.provider.username} | {self.date} {self.start_time}-{self.end_time}{service_info}"
+
+
+class Service(models.Model):
+    """Services offered by service providers"""
+
+    # Service Categories
+    CATEGORY_CHOICES = [
+        ('salon_beauty', 'Salon & Beauty'),
+        ('health_wellness', 'Health & Wellness'),
+        ('education', 'Education & Tutoring'),
+        ('home_services', 'Home Services'),
+        ('fitness', 'Fitness & Sports'),
+        ('technology', 'Technology & IT'),
+        ('business', 'Business & Consulting'),
+        ('other', 'Other'),
+    ]
+
+    # Duration Choices
+    DURATION_CHOICES = [
+        (30, '30 minutes'),
+        (60, '1 hour'),
+        (90, '1.5 hours'),
+        (120, '2 hours'),
+        (180, '3 hours'),
+        (240, '4 hours'),
+    ]
+
+    # Relationships
+    provider = models.ForeignKey(User, on_delete=models.CASCADE, related_name='services')
+
+    # Service Information
+    name = models.CharField(max_length=200, help_text="e.g., Hair Styling, Math Tutoring")
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    description = models.TextField(help_text="Describe what this service includes")
+
+    # Pricing & Duration
+    price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Price in EUR")
+    duration = models.IntegerField(choices=DURATION_CHOICES, default=60, help_text="Service duration")
+
+    # Status
+    is_active = models.BooleanField(default=True, help_text="Is this service currently offered?")
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Service'
+        verbose_name_plural = 'Services'
+
+    def __str__(self):
+        return f"{self.name} - €{self.price}"
+
+    def get_duration_display_short(self):
+        """Returns duration in a short format"""
+        hours = self.duration // 60
+        minutes = self.duration % 60
+        if hours and minutes:
+            return f"{hours}h {minutes}m"
+        elif hours:
+            return f"{hours}h"
+        else:
+            return f"{minutes}m"
+
+
+class Notification(models.Model):
+    """Notification system for users and providers"""
+
+    NOTIFICATION_TYPES = [
+        ('booking', 'Booking'),
+        ('cancellation', 'Cancellation'),
+        ('reminder', 'Reminder'),
+        ('system', 'System'),
+        ('message', 'Message'),
+    ]
+
+    # Recipient
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+
+    # Notification details
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+
+    # Status
+    is_read = models.BooleanField(default=False)
+
+    # Optional link
+    link = models.CharField(max_length=255, blank=True, null=True, help_text="URL to redirect when clicked")
+
+    # Timestamp
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Notification'
+        verbose_name_plural = 'Notifications'
+
+    def __str__(self):
+        return f"{self.user.username} - {self.title}"
 
 
 class Booking(models.Model):
-    STATUS_CHOICES = (
+    """Booking/Appointment model for tracking service bookings"""
+
+    STATUS_CHOICES = [
         ('pending', 'Pending'),
         ('confirmed', 'Confirmed'),
         ('completed', 'Completed'),
         ('cancelled', 'Cancelled'),
-    )
+    ]
 
-    customer = models.ForeignKey(
-        User, related_name="customer_bookings", on_delete=models.CASCADE
-    )
-    provider = models.ForeignKey(
-        User, related_name="provider_bookings", on_delete=models.CASCADE
-    )
+    # Relationships
+    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings_as_customer')
+    provider = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings_as_provider')
+    service = models.ForeignKey('Service', on_delete=models.CASCADE, related_name='bookings')
 
-    service_type = models.CharField(max_length=200)
+    # Booking Details
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
 
-    location = models.CharField(max_length=255)
-    price = models.DecimalField(max_digits=8, decimal_places=2)
+    # Pricing
+    price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Price at the time of booking")
 
-    status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default="pending"
-    )
+    # Status
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
 
+    # Notes
+    customer_notes = models.TextField(blank=True, null=True, help_text="Special requests from customer")
+    provider_notes = models.TextField(blank=True, null=True, help_text="Notes from provider")
+
+    # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Booking'
+        verbose_name_plural = 'Bookings'
+        indexes = [
+            models.Index(fields=['customer', '-created_at']),
+            models.Index(fields=['provider', '-created_at']),
+            models.Index(fields=['date', 'start_time']),
+        ]
 
     def __str__(self):
-        return f"{self.customer.username} → {self.provider.username}"
+        return f"{self.service.name} - {self.customer.username} on {self.date}"
+
+    @property
+    def is_upcoming(self):
+        """Check if booking is in the future"""
+        from datetime import datetime, date
+        booking_datetime = datetime.combine(self.date, self.start_time)
+        return booking_datetime > datetime.now() and self.status in ['pending', 'confirmed']
+
+    @property
+    def is_past(self):
+        """Check if booking is in the past"""
+        from datetime import datetime, date
+        booking_datetime = datetime.combine(self.date, self.start_time)
+        return booking_datetime < datetime.now()
+
+
+class SearchQuery(models.Model):
+    """Track search queries for analytics and improvement"""
+
+    query = models.CharField(max_length=255, help_text="Search query entered by user")
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='search_queries')
+
+    # Filters applied
+    category = models.CharField(max_length=50, blank=True, null=True)
+    location = models.CharField(max_length=100, blank=True, null=True)
+    min_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    max_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+
+    # Results
+    results_count = models.IntegerField(default=0)
+    clicked_service = models.ForeignKey('Service', on_delete=models.SET_NULL, null=True, blank=True, related_name='search_clicks')
+
+    # Metadata
+    created_at = models.DateTimeField(auto_now_add=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Search Query'
+        verbose_name_plural = 'Search Queries'
+        indexes = [
+            models.Index(fields=['query', '-created_at']),
+            models.Index(fields=['-created_at']),
+        ]
+
+    def __str__(self):
+        return f"{self.provider.username} | {self.date} {self.start_time}-{self.end_time}"
+
+
+

@@ -1,0 +1,150 @@
+{% extends "superadmin/dashboard.html" %}
+
+{% block title %}User Management - Superadmin{% endblock %}
+
+{% block content %}
+<div class="superadmin-wrapper">
+    <div class="superadmin-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="superadmin-title">
+                        <i class="bi bi-shield-lock-fill"></i> Superadmin Control Panel
+                    </h1>
+                    <p class="superadmin-subtitle">Manage your booking system</p>
+                </div>
+                <a href="{% url 'dashboard' %}" class="btn-light">
+                    <i class="bi bi-house-door-fill me-2"></i>Dashboard
+                </a>
+            </div>
+            <nav class="superadmin-nav">
+                <a href="{% url 'superadmin_dashboard' %}">
+                    <i class="bi bi-speedometer2 me-1"></i> Overview
+                </a>
+                <a href="{% url 'superadmin_users' %}" class="active">
+                    <i class="bi bi-people-fill me-1"></i> Users
+                </a>
+                <a href="{% url 'superadmin_services' %}">
+                    <i class="bi bi-briefcase-fill me-1"></i> Services
+                </a>
+                <a href="{% url 'superadmin_notifications' %}">
+                    <i class="bi bi-bell-fill me-1"></i> Notifications
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <div class="container mt-4 pb-5">
+        <!-- Statistics Mini Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
+                <div class="stat-value">{{ user_stats.total }}</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-person"></i></div>
+                <div class="stat-value">{{ user_stats.users }}</div>
+                <div class="stat-label">Customers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-briefcase"></i></div>
+                <div class="stat-value">{{ user_stats.providers }}</div>
+                <div class="stat-label">Providers</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-shield-check"></i></div>
+                <div class="stat-value">{{ user_stats.superadmins }}</div>
+                <div class="stat-label">Superadmins</div>
+            </div>
+        </div>
+
+        <!-- User Management -->
+        <div class="dashboard-card">
+            <div class="card-header-admin">
+                <h3 class="card-title-admin">
+                    <i class="bi bi-people-fill"></i> User Management
+                </h3>
+            </div>
+
+            <!-- Search Box -->
+            <form method="GET" class="mb-3">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" placeholder="Search users..." value="{{ search_query }}">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </form>
+
+            <!-- Filter Buttons -->
+            <div class="btn-group mb-4" role="group">
+                <a href="?type=all{% if search_query %}&search={{ search_query }}{% endif %}"
+                   class="btn {% if type_filter == 'all' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                    All Users
+                </a>
+                <a href="?type=user{% if search_query %}&search={{ search_query }}{% endif %}"
+                   class="btn {% if type_filter == 'user' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                    Customers
+                </a>
+                <a href="?type=provider{% if search_query %}&search={{ search_query }}{% endif %}"
+                   class="btn {% if type_filter == 'provider' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                    Providers
+                </a>
+                <a href="?type=superadmin{% if search_query %}&search={{ search_query }}{% endif %}"
+                   class="btn {% if type_filter == 'superadmin' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                    Superadmins
+                </a>
+            </div>
+
+            <!-- Users Table -->
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Username</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Type</th>
+                            <th>Joined</th>
+                            <th>Last Login</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td><strong>{{ user.username }}</strong></td>
+                            <td>{{ user.get_full_name|default:"—" }}</td>
+                            <td>{{ user.email|default:"—" }}</td>
+                            <td>
+                                {% if user.userprofile.user_type == 'provider' %}
+                                    <span class="badge-admin badge-provider">Provider</span>
+                                {% elif user.userprofile.user_type == 'superadmin' %}
+                                    <span class="badge-admin badge-pending">Superadmin</span>
+                                {% else %}
+                                    <span class="badge-admin badge-user">User</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                            <td>{{ user.last_login|date:"M d, Y"|default:"Never" }}</td>
+                            <td>
+                                {% if user.is_active %}
+                                    <span class="badge-admin badge-active">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">No users found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

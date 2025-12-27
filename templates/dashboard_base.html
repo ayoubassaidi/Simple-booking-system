@@ -47,12 +47,26 @@
                 </a>
             </li>
             <li>
-                <a href="#">
-                    <i class="bi bi-person"></i>
+                <a href="{% url 'profile' %}">
+                    <i class="bi bi-person-circle"></i>
                     <span>Profile</span>
                 </a>
             </li>
+            {% if user.userprofile.user_type == 'superadmin' %}
+            <li>
+                <a href="{% url 'superadmin_dashboard' %}">
+                    <i class="bi bi-shield-check"></i>
+                    <span>Superadmin Panel</span>
+                </a>
+            </li>
+            {% endif %}
             {% if user.userprofile.user_type == 'provider' %}
+            <li>
+                <a href="{% url 'my_services' %}">
+                    <i class="bi bi-grid-3x3"></i>
+                    <span>My Services</span>
+                </a>
+            </li>
             <li>
                 <a href="{% url 'add_availability' %}">
                     <i class="bi bi-calendar-plus"></i>
@@ -65,6 +79,9 @@
                 <a href="{% url 'provider_bookings' %}">
                     <i class="bi bi-calendar3"></i>
                     <span>Bookings</span>
+                <a href="{% url 'browse_providers' %}">
+                    <i class="bi bi-search"></i>
+                    <span>Browse Services</span>
                 </a>
             </li>
             {% elif user.userprofile.user_type == 'user' %}
@@ -76,14 +93,17 @@
             </li>
             {% endif %}
                 <a href="#">
-                    <i class="bi bi-bell"></i>
-                    <span>Notifications</span>
+                    <i class="bi bi-calendar3"></i>
+                    <span>My Bookings</span>
                 </a>
             </li>
             <li>
-                <a href="#">
-                    <i class="bi bi-gear"></i>
-                    <span>Settings</span>
+                <a href="{% url 'notifications' %}">
+                    <i class="bi bi-bell"></i>
+                    <span>Notifications</span>
+                    {% if unread_notifications_count > 0 %}
+                    <span class="notification-badge">{{ unread_notifications_count }}</span>
+                    {% endif %}
                 </a>
             </li>
             <li>

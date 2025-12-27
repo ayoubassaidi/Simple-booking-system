@@ -86,7 +86,7 @@
 }
 
 .btn-dashboard {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
     color: white;
     border: none;
     border-radius: 10px;
@@ -100,10 +100,10 @@
 }
 
 .btn-dashboard:hover {
-    background: linear-gradient(135deg, #5568d3 0%, #653a8b 100%);
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563EB 100%);
     color: white;
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    box-shadow: 0 5px 15px rgba(37, 99, 235, 0.3);
 }
 
 .success-card .text-muted {
@@ -112,7 +112,7 @@
 }
 
 .success-card .text-muted a {
-    color: #667eea;
+    color: #2563EB;
     text-decoration: none;
 }
 

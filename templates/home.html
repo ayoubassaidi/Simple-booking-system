@@ -25,12 +25,12 @@ body {
     <p class="hero-subtitle">Find the Best Service Providers for Your Needs</p>
 
     <!-- Search Box -->
-    <div class="search-box">
-        <input type="text" placeholder="I need a math tutor for class 10 exam..." id="searchInput">
-        <button type="button" class="btn-search" id="searchBtn">
+    <form action="{% url 'search_services' %}" method="GET" class="search-box">
+        <input type="text" name="q" placeholder="Search for services, providers, or categories..." id="searchInput">
+        <button type="submit" class="btn-search">
             <i class="bi bi-search"></i> Search
         </button>
-    </div>
+    </form>
 
     <!-- CTA Buttons -->
     <div class="cta-buttons">
@@ -42,6 +42,109 @@ body {
         </a>
     </div>
 </section>
+
+<!-- Popular Categories Section -->
+{% if popular_categories %}
+<section class="categories-section">
+    <div class="container">
+        <h2>Popular Categories</h2>
+        <p class="section-subtitle">Explore our most requested services</p>
+
+        <div class="categories-grid">
+            {% for category in popular_categories %}
+            <a href="{% url 'search_services' %}?category={{ category.value }}" class="category-card">
+                <div class="category-icon">
+                    {% if category.value == 'home_services' %}
+                        <i class="bi bi-house"></i>
+                    {% elif category.value == 'education' %}
+                        <i class="bi bi-book"></i>
+                    {% elif category.value == 'health_wellness' %}
+                        <i class="bi bi-heart-pulse"></i>
+                    {% elif category.value == 'salon_beauty' %}
+                        <i class="bi bi-scissors"></i>
+                    {% elif category.value == 'fitness' %}
+                        <i class="bi bi-trophy"></i>
+                    {% elif category.value == 'business' %}
+                        <i class="bi bi-briefcase"></i>
+                    {% elif category.value == 'technology' %}
+                        <i class="bi bi-laptop"></i>
+                    {% else %}
+                        <i class="bi bi-grid"></i>
+                    {% endif %}
+                </div>
+                <h3>{{ category.label }}</h3>
+                <p>{{ category.count }} service{{ category.count|pluralize }}</p>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Featured Services Section -->
+{% if featured_services %}
+<section class="featured-section">
+    <div class="container">
+        <h2>Featured Services</h2>
+        <p class="section-subtitle">Handpicked services from top-rated providers</p>
+
+        <div class="services-grid">
+            {% for service in featured_services %}
+            <div class="service-card-new">
+                <!-- Category Header with Gradient Background -->
+                <div class="category-header">
+                    <div class="category-pill">
+                        <i class="bi bi-star-fill me-1"></i>
+                        {{ service.get_category_display|upper }}
+                    </div>
+                </div>
+
+                <!-- Card Content -->
+                <div class="card-content">
+                    <!-- Service Title -->
+                    <h3 class="service-title-new">{{ service.name }}</h3>
+
+                    <!-- Provider Badge -->
+                    <div class="provider-badge-new">
+                        <i class="bi bi-person-circle"></i>
+                        <span>{{ service.provider.get_full_name|default:service.provider.username }}</span>
+                    </div>
+
+                    <!-- Description -->
+                    <p class="service-desc-new">{{ service.description|truncatewords:12 }}</p>
+
+                    <!-- Meta Info Box -->
+                    <div class="meta-box">
+                        <div class="meta-row">
+                            <i class="bi bi-clock-fill"></i>
+                            <span>{{ service.duration }} min</span>
+                        </div>
+                    </div>
+
+                    <!-- Price Section -->
+                    <div class="price-section-new">
+                        <span class="price-label-new">PRICE</span>
+                        <div class="price-amount-new">€{{ service.price }}</div>
+                    </div>
+
+                    <!-- View Availability Button -->
+                    <a href="{% url 'view_availability' service.id %}" class="btn-view-availability">
+                        View Availability
+                        <i class="bi bi-calendar-check ms-2"></i>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="text-center mt-4">
+            <a href="{% url 'browse_providers' %}" class="btn-view-all">
+                View All Services <i class="bi bi-arrow-right ms-2"></i>
+            </a>
+        </div>
+    </div>
+</section>
+{% endif %}
 
 <!-- Features Section -->
 <section class="features-section" id="features">
@@ -113,26 +216,5 @@ document.querySelectorAll('a[href^="#"]').forEach(function(link) {
         }
     });
 });
-
-// Simple search
-var searchBtn = document.getElementById('searchBtn');
-var searchInput = document.getElementById('searchInput');
-
-if (searchBtn && searchInput) {
-    searchBtn.addEventListener('click', function() {
-        var query = searchInput.value.trim();
-        if (query) {
-            alert('Search feature coming soon! Searching for: ' + query);
-        } else {
-            alert('Please enter a search query');
-        }
-    });
-
-    searchInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            searchBtn.click();
-        }
-    });
-}
 </script>
 {% endblock %}

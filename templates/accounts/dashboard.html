@@ -1,179 +1,660 @@
 {% extends "dashboard_base.html" %}
+{% load static %}
+
 {% block dashboard_content %}
 
-<!-- Quick Stats -->
-        <div class="stats-grid">
-            <div class="stat-card primary">
-                <div class="stat-icon">
-                    <i class="bi bi-person-check"></i>
-                </div>
-                <h6>Account Status</h6>
-                <p class="stat-value">Active</p>
-            </div>
+{% if is_provider %}
+<!-- Provider Dashboard -->
+<div class="stats-grid">
+    <div class="stat-card primary">
+        <div class="stat-icon">
+            <i class="bi bi-cash-stack"></i>
+        </div>
+        <h6>Total Revenue</h6>
+        <p class="stat-value">€{{ total_revenue|floatformat:2 }}</p>
+        <small class="stat-change positive">All time earnings</small>
+    </div>
 
-            <div class="stat-card success">
-                <div class="stat-icon">
-                    <i class="bi bi-calendar-check"></i>
-                </div>
-                <h6>Member Since</h6>
-                <p class="stat-value">{{ date_joined|date:"M Y" }}</p>
-            </div>
+    <div class="stat-card success">
+        <div class="stat-icon">
+            <i class="bi bi-calendar-check-fill"></i>
+        </div>
+        <h6>Total Bookings</h6>
+        <p class="stat-value">{{ total_bookings }}</p>
+        <small class="stat-change">{{ completed_bookings }} completed</small>
+    </div>
 
-            <div class="stat-card warning">
-                <div class="stat-icon">
-                    <i class="bi bi-clock-history"></i>
+    <div class="stat-card warning">
+        <div class="stat-icon">
+            <i class="bi bi-clock-history"></i>
+        </div>
+        <h6>Pending</h6>
+        <p class="stat-value">{{ pending_bookings }}</p>
+        <small class="stat-change">Awaiting confirmation</small>
+    </div>
+
+    <div class="stat-card info">
+        <div class="stat-icon">
+            <i class="bi bi-calendar-month"></i>
+        </div>
+        <h6>This Month</h6>
+        <p class="stat-value">€{{ month_revenue|floatformat:2 }}</p>
+        <small class="stat-change">Revenue earned</small>
+    </div>
+</div>
+
+<!-- Provider Quick Stats Row -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="info-card">
+            <div class="card-header-custom">
+                <i class="bi bi-graph-up"></i> Quick Overview
+            </div>
+            <div class="card-body">
+                <div class="quick-stats">
+                    <div class="quick-stat-item">
+                        <i class="bi bi-list-check"></i>
+                        <div>
+                            <strong>{{ active_services }}</strong>
+                            <span>Active Services</span>
+                        </div>
+                    </div>
+                    <div class="quick-stat-item">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>
+                            <strong>{{ completed_bookings }}</strong>
+                            <span>Completed</span>
+                        </div>
+                    </div>
+                    <div class="quick-stat-item">
+                        <i class="bi bi-hourglass-split"></i>
+                        <div>
+                            <strong>{{ pending_bookings }}</strong>
+                            <span>Pending</span>
+                        </div>
+                    </div>
+                    <div class="quick-stat-item">
+                        <i class="bi bi-clock-fill"></i>
+                        <div>
+                            <strong>{{ total_hours }}h</strong>
+                            <span>Total Hours Booked</span>
+                        </div>
+                    </div>
                 </div>
-                <h6>Last Login</h6>
-                <p class="stat-value">
-                    {% if last_login %}
-                        {{ last_login|date:"M d, Y" }}
-                    {% else %}
-                        First time!
-                    {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upcoming Bookings -->
+<div class="main-section">
+    <h4 class="section-title">
+        <i class="bi bi-calendar-event"></i>
+        Upcoming Bookings
+    </h4>
+
+    {% if upcoming_bookings %}
+        <div class="bookings-list">
+            {% for booking in upcoming_bookings %}
+            <div class="booking-card">
+                <div class="booking-header">
+                    <div class="booking-service">
+                        <i class="bi bi-briefcase-fill"></i>
+                        <strong>{{ booking.service.name }}</strong>
+                    </div>
+                    <span class="badge-status badge-{{ booking.status }}">{{ booking.get_status_display }}</span>
+                </div>
+                <div class="booking-details">
+                    <div class="booking-detail-item">
+                        <i class="bi bi-person"></i>
+                        <span>{{ booking.customer.get_full_name|default:booking.customer.username }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                        <i class="bi bi-calendar3"></i>
+                        <span>{{ booking.date|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                        <i class="bi bi-clock"></i>
+                        <span>{{ booking.start_time|time:"h:i A" }} - {{ booking.end_time|time:"h:i A" }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                        <i class="bi bi-cash"></i>
+                        <strong class="text-success">€{{ booking.price }}</strong>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state-small">
+            <i class="bi bi-calendar-x"></i>
+            <p>No upcoming bookings</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Recent Bookings -->
+<div class="main-section mt-4">
+    <h4 class="section-title">
+        <i class="bi bi-clock-history"></i>
+        Recent Bookings
+    </h4>
+
+    {% if recent_bookings %}
+        <div class="bookings-list">
+            {% for booking in recent_bookings %}
+            <div class="booking-card">
+                <div class="booking-header">
+                    <div class="booking-service">
+                        <i class="bi bi-briefcase-fill"></i>
+                        <strong>{{ booking.service.name }}</strong>
+                    </div>
+                    <span class="badge-status badge-{{ booking.status }}">{{ booking.get_status_display }}</span>
+                </div>
+                <div class="booking-details">
+                    <div class="booking-detail-item">
+                        <i class="bi bi-person"></i>
+                        <span>{{ booking.customer.get_full_name|default:booking.customer.username }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                        <i class="bi bi-calendar3"></i>
+                        <span>{{ booking.date|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                        <i class="bi bi-clock"></i>
+                        <span>{{ booking.start_time|time:"h:i A" }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                        <i class="bi bi-cash"></i>
+                        <strong>€{{ booking.price }}</strong>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state-small">
+            <i class="bi bi-inbox"></i>
+            <p>No recent bookings</p>
+        </div>
+    {% endif %}
+</div>
+
+{% else %}
+<!-- User/Customer Dashboard -->
+<div class="stats-grid">
+    <div class="stat-card primary">
+        <div class="stat-icon">
+            <i class="bi bi-calendar-check-fill"></i>
+        </div>
+        <h6>Total Bookings</h6>
+        <p class="stat-value">{{ total_bookings }}</p>
+        <small class="stat-change">All time bookings</small>
+    </div>
+
+    <div class="stat-card success">
+        <div class="stat-icon">
+            <i class="bi bi-check-circle-fill"></i>
+        </div>
+        <h6>Completed</h6>
+        <p class="stat-value">{{ completed_bookings }}</p>
+        <small class="stat-change">Successfully done</small>
+    </div>
+
+    <div class="stat-card warning">
+        <div class="stat-icon">
+            <i class="bi bi-clock-history"></i>
+        </div>
+        <h6>Pending</h6>
+        <p class="stat-value">{{ pending_bookings }}</p>
+        <small class="stat-change">Awaiting confirmation</small>
+    </div>
+
+    <div class="stat-card info">
+        <div class="stat-icon">
+            <i class="bi bi-cash-stack"></i>
+        </div>
+        <h6>Total Spent</h6>
+        <p class="stat-value">€{{ total_spent|floatformat:2 }}</p>
+        <small class="stat-change">On services</small>
+    </div>
+</div>
+
+<!-- User Quick Stats Row -->
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="info-card">
+            <div class="card-header-custom">
+                <i class="bi bi-graph-up"></i> Quick Overview
+            </div>
+            <div class="card-body">
+                <div class="quick-stats">
+                    <div class="quick-stat-item">
+                        <i class="bi bi-calendar-check"></i>
+                        <div>
+                            <strong>{{ total_bookings }}</strong>
+                            <span>Total Bookings</span>
+                        </div>
+                    </div>
+                    <div class="quick-stat-item">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <div>
+                            <strong>{{ completed_bookings }}</strong>
+                            <span>Completed</span>
+                        </div>
+                    </div>
+                    <div class="quick-stat-item">
+                        <i class="bi bi-hourglass-split"></i>
+                        <div>
+                            <strong>{{ pending_bookings }}</strong>
+                            <span>Pending</span>
+                        </div>
+                    </div>
+                    <div class="quick-stat-item">
+                        <i class="bi bi-clock-fill"></i>
+                        <div>
+                            <strong>{{ total_hours }}h</strong>
+                            <span>Total Hours Booked</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Last Booking -->
+{% if last_booking %}
+<div class="main-section">
+    <h4 class="section-title">
+        <i class="bi bi-bookmark-star"></i>
+        Last Visit
+    </h4>
+
+    <div class="last-booking-card">
+        <div class="last-booking-header">
+            <div class="service-info">
+                <h5>{{ last_booking.service.name }}</h5>
+                <p class="provider-name">
+                    <i class="bi bi-person-circle"></i>
+                    {{ last_booking.provider.get_full_name|default:last_booking.provider.username }}
                 </p>
             </div>
-
-            <div class="stat-card info">
-                <div class="stat-icon">
-                    <i class="bi bi-bell"></i>
+            <span class="badge-status badge-completed">Completed</span>
+        </div>
+        <div class="last-booking-details">
+            <div class="detail-row">
+                <div class="detail-col">
+                    <i class="bi bi-calendar3"></i>
+                    <span>{{ last_booking.date|date:"F d, Y" }}</span>
                 </div>
-                <h6>Notifications</h6>
-                <p class="stat-value">0</p>
+                <div class="detail-col">
+                    <i class="bi bi-clock"></i>
+                    <span>{{ last_booking.start_time|time:"h:i A" }}</span>
+                </div>
+                <div class="detail-col">
+                    <i class="bi bi-cash"></i>
+                    <strong>€{{ last_booking.price }}</strong>
+                </div>
             </div>
         </div>
+    </div>
+</div>
+{% endif %}
 
-        <!-- Account Information -->
-        <div class="main-section">
-            <h4 class="section-title">
-                <i class="bi bi-info-circle"></i>
-                Account Information
-            </h4>
+<!-- Upcoming Bookings -->
+<div class="main-section mt-4">
+    <h4 class="section-title">
+        <i class="bi bi-calendar-event"></i>
+        Upcoming Bookings
+    </h4>
 
-            <ul class="info-list">
-                <li>
-                    <span class="info-label">
-                        <i class="bi bi-person"></i>
-                        Username
-                    </span>
-                    <span class="info-value">{{ username }}</span>
-                </li>
-                <li>
-                    <span class="info-label">
-                        <i class="bi bi-envelope"></i>
-                        Email Address
-                    </span>
-                    <span class="info-value">{{ email }}</span>
-                </li>
-                <li>
-                    <span class="info-label">
-                        <i class="bi bi-shield-check"></i>
-                        Account Type
-                    </span>
-                    <span class="badge-custom {% if user_type == 'User' %}bg-primary{% else %}bg-success{% endif %}">
-                        {{ user_type }}
-                    </span>
-                </li>
-                <li>
-                    <span class="info-label">
-                        <i class="bi bi-calendar-plus"></i>
-                        Joined Date
-                    </span>
-                    <span class="info-value">{{ date_joined|date:"F d, Y" }}</span>
-                </li>
-                <li>
-                    <span class="info-label">
+    {% if upcoming_bookings %}
+        <div class="bookings-list">
+            {% for booking in upcoming_bookings %}
+            <div class="booking-card">
+                <div class="booking-header">
+                    <div class="booking-service">
+                        <i class="bi bi-briefcase-fill"></i>
+                        <strong>{{ booking.service.name }}</strong>
+                    </div>
+                    <span class="badge-status badge-{{ booking.status }}">{{ booking.get_status_display }}</span>
+                </div>
+                <div class="booking-details">
+                    <div class="booking-detail-item">
+                        <i class="bi bi-person-circle"></i>
+                        <span>{{ booking.provider.get_full_name|default:booking.provider.username }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                        <i class="bi bi-calendar3"></i>
+                        <span>{{ booking.date|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="booking-detail-item">
                         <i class="bi bi-clock"></i>
-                        Last Activity
-                    </span>
-                    <span class="info-value">
-                        {% if last_login %}
-                            {{ last_login|date:"F d, Y - g:i A" }}
-                        {% else %}
-                            This is your first login!
-                        {% endif %}
-                    </span>
-                </li>
-
-                {% if user_profile %}
-                    <!-- Phone Number (Both User and Provider) -->
-                    {% if user_profile.phone_number %}
-                    <li>
-                        <span class="info-label">
-                            <i class="bi bi-telephone"></i>
-                            Phone Number
-                        </span>
-                        <span class="info-value">{{ user_profile.phone_number }}</span>
-                    </li>
-                    {% endif %}
-
-                    <!-- User-specific fields -->
-                    {% if user_profile.user_type == 'user' %}
-                        {% if user_profile.birthday %}
-                        <li>
-                            <span class="info-label">
-                                <i class="bi bi-cake2"></i>
-                                Birthday
-                            </span>
-                            <span class="info-value">{{ user_profile.birthday|date:"F d, Y" }}</span>
-                        </li>
-                        {% endif %}
-
-                        {% if user_profile.address %}
-                        <li>
-                            <span class="info-label">
-                                <i class="bi bi-geo-alt"></i>
-                                Address
-                            </span>
-                            <span class="info-value">{{ user_profile.address }}</span>
-                        </li>
-                        {% endif %}
-                    {% endif %}
-
-                    <!-- Provider-specific fields -->
-                    {% if user_profile.user_type == 'provider' %}
-                        {% if user_profile.city %}
-                        <li>
-                            <span class="info-label">
-                                <i class="bi bi-building"></i>
-                                City
-                            </span>
-                            <span class="info-value">{{ user_profile.city }}</span>
-                        </li>
-                        {% endif %}
-
-                        {% if user_profile.service_type %}
-                        <li>
-                            <span class="info-label">
-                                <i class="bi bi-tools"></i>
-                                Service Type
-                            </span>
-                            <span class="info-value">{{ user_profile.service_type }}</span>
-                        </li>
-                        {% endif %}
-
-                        {% if user_profile.kvk_number %}
-                        <li>
-                            <span class="info-label">
-                                <i class="bi bi-card-checklist"></i>
-                                KVK Number
-                            </span>
-                            <span class="info-value">{{ user_profile.kvk_number }}</span>
-                        </li>
-                        {% endif %}
-
-                        {% if user_profile.bio %}
-                        <li style="display: block; padding: 20px 15px;">
-                            <span class="info-label" style="display: block; margin-bottom: 10px;">
-                                <i class="bi bi-chat-quote"></i>
-                                Bio / About Services
-                            </span>
-                            <span class="info-value" style="display: block; line-height: 1.6; color: #495057;">
-                                {{ user_profile.bio }}
-                            </span>
-                        </li>
-                        {% endif %}
-                    {% endif %}
-                {% endif %}
-            </ul>
+                        <span>{{ booking.start_time|time:"h:i A" }} - {{ booking.end_time|time:"h:i A" }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                        <i class="bi bi-cash"></i>
+                        <strong class="text-success">€{{ booking.price }}</strong>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
         </div>
+    {% else %}
+        <div class="empty-state-small">
+            <i class="bi bi-calendar-x"></i>
+            <p>No upcoming bookings</p>
+            <a href="{% url 'browse_providers' %}" class="btn btn-primary btn-sm mt-2">
+                <i class="bi bi-search"></i> Browse Services
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Past Bookings -->
+<div class="main-section mt-4">
+    <h4 class="section-title">
+        <i class="bi bi-clock-history"></i>
+        Past Bookings
+    </h4>
+
+    {% if past_bookings %}
+        <div class="bookings-list">
+            {% for booking in past_bookings %}
+            <div class="booking-card">
+                <div class="booking-header">
+                    <div class="booking-service">
+                        <i class="bi bi-briefcase-fill"></i>
+                        <strong>{{ booking.service.name }}</strong>
+                    </div>
+                    <span class="badge-status badge-{{ booking.status }}">{{ booking.get_status_display }}</span>
+                </div>
+                <div class="booking-details">
+                    <div class="booking-detail-item">
+                        <i class="bi bi-person-circle"></i>
+                        <span>{{ booking.provider.get_full_name|default:booking.provider.username }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                        <i class="bi bi-calendar3"></i>
+                        <span>{{ booking.date|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                        <i class="bi bi-clock"></i>
+                        <span>{{ booking.start_time|time:"h:i A" }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                        <i class="bi bi-cash"></i>
+                        <strong>€{{ booking.price }}</strong>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state-small">
+            <i class="bi bi-inbox"></i>
+            <p>No past bookings</p>
+        </div>
+    {% endif %}
+</div>
+
+{% endif %}
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Quick Stats */
+.quick-stats {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.quick-stat-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.quick-stat-item i {
+    font-size: 2rem;
+    color: #667eea;
+}
+
+.quick-stat-item strong {
+    font-size: 1.5rem;
+    color: #2d3748;
+    display: block;
+}
+
+.quick-stat-item span {
+    font-size: 0.9rem;
+    color: #718096;
+}
+
+/* Stat Card Enhancements */
+.stat-change {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.85rem;
+    color: #718096;
+}
+
+.stat-change.positive {
+    color: #48bb78;
+}
+
+/* Bookings List */
+.bookings-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.booking-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+}
+
+.booking-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.booking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f7fafc;
+}
+
+.booking-service {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.booking-service i {
+    color: #667eea;
+    font-size: 1.2rem;
+}
+
+.booking-service strong {
+    font-size: 1.1rem;
+    color: #2d3748;
+}
+
+.badge-status {
+    padding: 6px 16px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.badge-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.badge-confirmed {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.badge-completed {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.badge-cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.booking-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.booking-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #4a5568;
+    font-size: 0.95rem;
+}
+
+.booking-detail-item i {
+    color: #667eea;
+}
+
+/* Last Booking Card */
+.last-booking-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 16px;
+    padding: 25px;
+    color: white;
+}
+
+.last-booking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.service-info h5 {
+    color: white;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.provider-name {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.last-booking-details {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 20px;
+    border-radius: 12px;
+}
+
+.detail-row {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.detail-col {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: white;
+    font-size: 1rem;
+}
+
+.detail-col i {
+    font-size: 1.2rem;
+}
+
+.detail-col strong {
+    font-size: 1.3rem;
+}
+
+/* Empty State */
+.empty-state-small {
+    text-align: center;
+    padding: 40px 20px;
+    background: #f7fafc;
+    border-radius: 12px;
+}
+
+.empty-state-small i {
+    font-size: 3rem;
+    color: #cbd5e0;
+    margin-bottom: 15px;
+}
+
+.empty-state-small p {
+    color: #718096;
+    font-size: 1.05rem;
+    margin: 0;
+}
+
+/* Info Card */
+.info-card {
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.card-header-custom {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 15px 20px;
+    font-weight: 600;
+    font-size: 1.05rem;
+}
+
+.card-header-custom i {
+    margin-right: 8px;
+}
+
+.card-body {
+    padding: 25px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .booking-details {
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .detail-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .quick-stats {
+        flex-direction: column;
+        gap: 20px;
+    }
+}
+</style>
 {% endblock %}

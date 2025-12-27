@@ -1,0 +1,210 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block title %}My Services - Smart Booking{% endblock %}
+
+{% block page_title %}My Services{% endblock %}
+{% block page_subtitle %}Manage the services you offer to clients{% endblock %}
+
+{% block dashboard_content %}
+<!-- Stats Cards -->
+<div class="stats-grid mb-4">
+    <div class="stat-card primary">
+        <div class="stat-icon">
+            <i class="bi bi-grid-3x3"></i>
+        </div>
+        <h6>Total Services</h6>
+        <p class="stat-value">{{ total_services }}</p>
+    </div>
+
+    <div class="stat-card success">
+        <div class="stat-icon">
+            <i class="bi bi-check-circle"></i>
+        </div>
+        <h6>Active Services</h6>
+        <p class="stat-value">{{ active_services }}</p>
+    </div>
+
+    <div class="stat-card warning">
+        <div class="stat-icon">
+            <i class="bi bi-pause-circle"></i>
+        </div>
+        <h6>Inactive Services</h6>
+        <p class="stat-value">{{ inactive_services }}</p>
+    </div>
+</div>
+
+<!-- Add Service Button -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h3 class="section-title mb-0">
+        <i class="bi bi-list-ul"></i> All Services
+    </h3>
+    <a href="{% url 'add_service' %}" class="btn btn-primary">
+        <i class="bi bi-plus-circle me-2"></i>Add New Service
+    </a>
+</div>
+
+<!-- Services List -->
+{% if services %}
+<div class="row g-4">
+    {% for service in services %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card service-card h-100">
+            <div class="card-body">
+                <!-- Service Header -->
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5 class="card-title mb-1">{{ service.name }}</h5>
+                        <span class="badge bg-primary-subtle text-primary">
+                            {{ service.get_category_display }}
+                        </span>
+                    </div>
+                    {% if service.is_active %}
+                    <span class="badge bg-success">
+                        <i class="bi bi-check-circle me-1"></i>Active
+                    </span>
+                    {% else %}
+                    <span class="badge bg-secondary">
+                        <i class="bi bi-pause-circle me-1"></i>Inactive
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Service Description -->
+                <p class="card-text text-muted small mb-3">
+                    {{ service.description|truncatewords:20 }}
+                </p>
+
+                <!-- Service Details -->
+                <div class="service-details mb-3">
+                    <div class="d-flex align-items-center mb-2">
+                        <i class="bi bi-currency-euro text-primary me-2"></i>
+                        <strong class="text-primary fs-5">€{{ service.price }}</strong>
+                    </div>
+                    <div class="d-flex align-items-center text-muted small">
+                        <i class="bi bi-clock me-2"></i>
+                        <span>{{ service.get_duration_display }}</span>
+                    </div>
+                    <div class="d-flex align-items-center text-muted small mt-1">
+                        <i class="bi bi-calendar-plus me-2"></i>
+                        <span>Added {{ service.created_at|date:"M d, Y" }}</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="d-flex gap-2 mt-auto">
+                    <a href="{% url 'edit_service' service.id %}" class="btn btn-sm btn-outline-primary flex-fill">
+                        <i class="bi bi-pencil"></i> Edit
+                    </a>
+                    <form action="{% url 'toggle_service_status' service.id %}" method="post" class="flex-fill">
+                        {% csrf_token %}
+                        {% if service.is_active %}
+                        <button type="submit" class="btn btn-sm btn-outline-warning w-100">
+                            <i class="bi bi-pause"></i> Pause
+                        </button>
+                        {% else %}
+                        <button type="submit" class="btn btn-sm btn-outline-success w-100">
+                            <i class="bi bi-play"></i> Activate
+                        </button>
+                        {% endif %}
+                    </form>
+                    <a href="{% url 'delete_service' service.id %}" class="btn btn-sm btn-outline-danger">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<!-- Empty State -->
+<div class="text-center py-5">
+    <div class="mb-4">
+        <i class="bi bi-inbox display-1 text-muted"></i>
+    </div>
+    <h3 class="text-muted mb-3">No Services Yet</h3>
+    <p class="text-muted mb-4">Start adding services to let clients know what you offer!</p>
+    <a href="{% url 'add_service' %}" class="btn btn-primary btn-lg">
+        <i class="bi bi-plus-circle me-2"></i>Add Your First Service
+    </a>
+</div>
+{% endif %}
+
+<style>
+.service-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.service-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.service-card .card-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.service-details {
+    border-top: 1px solid #f0f0f0;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 10px 0;
+}
+
+.bg-primary-subtle {
+    background-color: rgba(37, 99, 235, 0.1);
+}
+
+.text-primary {
+    color: #2563EB !important;
+}
+
+.btn-outline-primary {
+    color: #2563EB;
+    border-color: #2563EB;
+}
+
+.btn-outline-primary:hover {
+    background-color: #2563EB;
+    border-color: #2563EB;
+    color: white;
+}
+
+.btn-outline-warning {
+    color: #ffc107;
+    border-color: #ffc107;
+}
+
+.btn-outline-warning:hover {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #000;
+}
+
+.btn-outline-success {
+    color: #28a745;
+    border-color: #28a745;
+}
+
+.btn-outline-success:hover {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+}
+
+.btn-outline-danger {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-outline-danger:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
+}
+</style>
+{% endblock %}

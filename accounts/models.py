@@ -7,10 +7,11 @@ class UserProfile(models.Model):
     USER_TYPE_CHOICES = (
         ('user', 'User'),
         ('provider', 'Service Provider'),
+        ('superadmin', 'Super Administrator'),
     )
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES)
+    user_type = models.CharField(max_length=20, choices=USER_TYPE_CHOICES)
 
     # Common fields for both User and Provider
     phone_number = models.CharField(max_length=20, blank=True, null=True)

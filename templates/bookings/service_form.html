@@ -1,0 +1,190 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block title %}{{ form_title }} - Smart Booking{% endblock %}
+
+{% block page_title %}{{ form_title }}{% endblock %}
+{% block page_subtitle %}Provide details about the service you offer{% endblock %}
+
+{% block dashboard_content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body p-4">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {{ form.non_field_errors }}
+                    </div>
+                    {% endif %}
+
+                    <!-- Service Name -->
+                    <div class="mb-4">
+                        <label for="{{ form.name.id_for_label }}" class="form-label fw-bold">
+                            <i class="bi bi-tag me-2 text-primary"></i>{{ form.name.label }}
+                        </label>
+                        {{ form.name }}
+                        {% if form.name.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.name.errors }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Give your service a clear, descriptive name</div>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="mb-4">
+                        <label for="{{ form.category.id_for_label }}" class="form-label fw-bold">
+                            <i class="bi bi-grid me-2 text-primary"></i>{{ form.category.label }}
+                        </label>
+                        {{ form.category }}
+                        {% if form.category.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.category.errors }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Select the category that best matches your service</div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-4">
+                        <label for="{{ form.description.id_for_label }}" class="form-label fw-bold">
+                            <i class="bi bi-file-text me-2 text-primary"></i>{{ form.description.label }}
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.errors %}
+                        <div class="text-danger small mt-1">
+                            {{ form.description.errors }}
+                        </div>
+                        {% endif %}
+                        <div class="form-text">Describe what's included, benefits, and any special features</div>
+                    </div>
+
+                    <!-- Price & Duration Row -->
+                    <div class="row mb-4">
+                        <!-- Price -->
+                        <div class="col-md-6">
+                            <label for="{{ form.price.id_for_label }}" class="form-label fw-bold">
+                                <i class="bi bi-currency-euro me-2 text-primary"></i>{{ form.price.label }}
+                            </label>
+                            <div class="input-group">
+                                <span class="input-group-text">€</span>
+                                {{ form.price }}
+                            </div>
+                            {% if form.price.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.price.errors }}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">Set your service price</div>
+                        </div>
+
+                        <!-- Duration -->
+                        <div class="col-md-6">
+                            <label for="{{ form.duration.id_for_label }}" class="form-label fw-bold">
+                                <i class="bi bi-clock me-2 text-primary"></i>{{ form.duration.label }}
+                            </label>
+                            {{ form.duration }}
+                            {% if form.duration.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ form.duration.errors }}
+                            </div>
+                            {% endif %}
+                            <div class="form-text">How long does this service take?</div>
+                        </div>
+                    </div>
+
+                    <!-- Active Status -->
+                    <div class="mb-4">
+                        <div class="form-check form-switch">
+                            {{ form.is_active }}
+                            <label class="form-check-label fw-bold" for="{{ form.is_active.id_for_label }}">
+                                <i class="bi bi-check-circle me-2 text-success"></i>{{ form.is_active.label }}
+                            </label>
+                        </div>
+                        <div class="form-text ms-4">Uncheck to temporarily disable this service</div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="d-flex gap-3 justify-content-end mt-5 pt-3 border-top">
+                        <a href="{% url 'my_services' %}" class="btn btn-outline-secondary">
+                            <i class="bi bi-x-circle me-2"></i>Cancel
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-check-circle me-2"></i>{{ button_text }}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Help Card -->
+        <div class="card mt-4 border-info">
+            <div class="card-body">
+                <h6 class="card-title">
+                    <i class="bi bi-info-circle text-info me-2"></i>Tips for Creating Great Services
+                </h6>
+                <ul class="mb-0 small">
+                    <li>Use clear, descriptive names that clients can easily understand</li>
+                    <li>Write detailed descriptions highlighting what makes your service unique</li>
+                    <li>Set competitive prices based on your experience and market rates</li>
+                    <li>Be realistic about service duration to manage client expectations</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.form-label {
+    color: #333;
+    margin-bottom: 8px;
+}
+
+.form-control,
+.form-select {
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    padding: 12px 15px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #2563EB;
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+}
+
+.input-group-text {
+    background-color: #f8f9fa;
+    border: 2px solid #e0e0e0;
+    border-right: none;
+    border-radius: 8px 0 0 8px;
+}
+
+.input-group .form-control {
+    border-left: none;
+    border-radius: 0 8px 8px 0;
+}
+
+.form-check-input:checked {
+    background-color: #2563EB;
+    border-color: #2563EB;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #2563EB 0%, #3B82F6 100%);
+    border: none;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #1d4ed8 0%, #2563EB 100%);
+}
+</style>
+{% endblock %}

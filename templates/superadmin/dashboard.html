@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Superadmin Dashboard{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/superadmin.css' %}?v=3">
+{% endblock %}
+
+{% block content %}
+
+<!-- Superadmin Header -->
+<div class="superadmin-wrapper">
+    <div class="superadmin-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="superadmin-title">
+                        <i class="bi bi-shield-lock-fill"></i> Superadmin Control Panel
+                    </h1>
+                    <p class="superadmin-subtitle">Manage your booking system</p>
+                </div>
+                <a href="{% url 'dashboard' %}" class="btn-light">
+                    <i class="bi bi-house-door-fill me-2"></i>Dashboard
+                </a>
+            </div>
+            <nav class="superadmin-nav">
+                <a href="{% url 'superadmin_dashboard' %}" class="active">
+                    <i class="bi bi-speedometer2 me-1"></i> Overview
+                </a>
+                <a href="{% url 'superadmin_users' %}">
+                    <i class="bi bi-people-fill me-1"></i> Users
+                </a>
+                <a href="{% url 'superadmin_services' %}">
+                    <i class="bi bi-briefcase-fill me-1"></i> Services
+                </a>
+                <a href="{% url 'superadmin_notifications' %}">
+                    <i class="bi bi-bell-fill me-1"></i> Notifications
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mt-4 pb-5">
+        <!-- Statistics Cards -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-people-fill"></i>
+                </div>
+                <div class="stat-value">{{ total_users }}</div>
+                <div class="stat-label">Total Users</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-briefcase-fill"></i>
+                </div>
+                <div class="stat-value">{{ total_services }}</div>
+                <div class="stat-label">Total Services</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-calendar-check-fill"></i>
+                </div>
+                <div class="stat-value">{{ total_bookings }}</div>
+                <div class="stat-label">Total Bookings</div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon">
+                    <i class="bi bi-currency-euro"></i>
+                </div>
+                <div class="stat-value">€{{ total_revenue|floatformat:0 }}</div>
+                <div class="stat-label">Total Revenue</div>
+            </div>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="dashboard-card">
+                    <div class="card-header-admin">
+                        <h3 class="card-title-admin">
+                            <i class="bi bi-people"></i> User Statistics
+                        </h3>
+                    </div>
+                    <div class="quick-stats-grid">
+                        <div>
+                            <h4>{{ total_providers }}</h4>
+                            <p>Providers</p>
+                        </div>
+                        <div>
+                            <h4>{{ total_customers }}</h4>
+                            <p>Customers</p>
+                        </div>
+                        <div>
+                            <h4>{{ active_services }}</h4>
+                            <p>Active Services</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="dashboard-card">
+                    <div class="card-header-admin">
+                        <h3 class="card-title-admin">
+                            <i class="bi bi-calendar"></i> Booking Statistics
+                        </h3>
+                    </div>
+                    <div class="quick-stats-grid">
+                        <div>
+                            <h4>{{ pending_bookings }}</h4>
+                            <p>Pending</p>
+                        </div>
+                        <div>
+                            <h4>{{ completed_bookings }}</h4>
+                            <p>Completed</p>
+                        </div>
+                        <div>
+                            <h4>{{ total_bookings }}</h4>
+                            <p>Total</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Users -->
+        <div class="dashboard-card">
+            <div class="card-header-admin">
+                <h3 class="card-title-admin">
+                    <i class="bi bi-person-plus"></i> Recent Users
+                </h3>
+                <a href="{% url 'superadmin_users' %}" class="btn-primary">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Type</th>
+                            <th>Joined</th>
+                            <th>Last Login</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in recent_users %}
+                        <tr>
+                            <td><strong>{{ user.username }}</strong></td>
+                            <td>{{ user.email|default:"—" }}</td>
+                            <td>
+                                {% if user.userprofile.user_type == 'provider' %}
+                                    <span class="badge-admin badge-provider">Provider</span>
+                                {% else %}
+                                    <span class="badge-admin badge-user">User</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                            <td>{{ user.last_login|date:"M d, Y"|default:"Never" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">No users found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Top Services -->
+        <div class="dashboard-card">
+            <div class="card-header-admin">
+                <h3 class="card-title-admin">
+                    <i class="bi bi-star-fill"></i> Top Services
+                </h3>
+                <a href="{% url 'superadmin_services' %}" class="btn-primary">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Service</th>
+                            <th>Provider</th>
+                            <th>Category</th>
+                            <th>Price</th>
+                            <th>Bookings</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for service in top_services %}
+                        <tr>
+                            <td><strong>{{ service.name }}</strong></td>
+                            <td>{{ service.provider.username }}</td>
+                            <td>{{ service.get_category_display }}</td>
+                            <td><strong>€{{ service.price }}</strong></td>
+                            <td><strong>{{ service.booking_count }}</strong></td>
+                            <td>
+                                {% if service.is_active %}
+                                    <span class="badge-admin badge-active">Active</span>
+                                {% else %}
+                                    <span class="badge-admin badge-pending">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">No services found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Recent Bookings -->
+        <div class="dashboard-card">
+            <div class="card-header-admin">
+                <h3 class="card-title-admin">
+                    <i class="bi bi-calendar-event"></i> Recent Bookings
+                </h3>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Service</th>
+                            <th>Customer</th>
+                            <th>Provider</th>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Price</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for booking in recent_bookings %}
+                        <tr>
+                            <td><strong>{{ booking.service.name }}</strong></td>
+                            <td>{{ booking.customer.username }}</td>
+                            <td>{{ booking.provider.username }}</td>
+                            <td>{{ booking.date|date:"M d, Y" }}</td>
+                            <td>{{ booking.start_time|time:"g:i A" }}</td>
+                            <td>€{{ booking.price }}</td>
+                            <td>
+                                {% if booking.status == 'completed' %}
+                                    <span class="badge-admin badge-completed">Completed</span>
+                                {% elif booking.status == 'pending' %}
+                                    <span class="badge-admin badge-pending">Pending</span>
+                                {% elif booking.status == 'confirmed' %}
+                                    <span class="badge-admin badge-active">Confirmed</span>
+                                {% else %}
+                                    <span class="badge-admin badge-user">{{ booking.status|title }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">No bookings found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,533 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block title %}Search Results - Smart Service Booking{% endblock %}
+
+{% block page_title %}Search Results{% endblock %}
+{% block page_subtitle %}
+    {% if search_query %}
+        Found {{ results_count }} result{{ results_count|pluralize }} for "{{ search_query }}"
+    {% elif selected_category %}
+        Showing {{ results_count }} service{{ results_count|pluralize }} in {{ selected_category }}
+    {% else %}
+        Showing all services
+    {% endif %}
+{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'browse_providers' %}" class="btn btn-outline-primary btn-header">
+    <i class="bi bi-arrow-left me-2"></i>Back to Browse
+</a>
+{% endblock %}
+
+{% block dashboard_content %}
+<!-- Search & Filter Section -->
+<div class="search-filter-section mb-4">
+    <form method="GET" action="{% url 'search_services' %}" class="row g-3">
+        <div class="col-md-4">
+            <div class="input-group-modern">
+                <span class="input-icon"><i class="bi bi-search"></i></span>
+                <input type="text" name="q" class="form-control-modern" placeholder="Search services, providers..." value="{{ search_query }}">
+            </div>
+        </div>
+
+        <div class="col-md-2">
+            <select name="category" class="form-select-modern">
+                <option value="">All Categories</option>
+                {% for cat_value, cat_label in category_choices %}
+                    <option value="{{ cat_value }}" {% if selected_category == cat_value %}selected{% endif %}>
+                        {{ cat_label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <input type="number" name="min_price" class="form-control-modern" placeholder="Min €" value="{{ min_price }}" step="0.01">
+        </div>
+
+        <div class="col-md-2">
+            <input type="number" name="max_price" class="form-control-modern" placeholder="Max €" value="{{ max_price }}" step="0.01">
+        </div>
+
+        <div class="col-md-2">
+            <button type="submit" class="btn-filter-modern w-100">
+                <i class="bi bi-funnel me-2"></i>Filter
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Sort & Results Count -->
+<div class="results-header mb-4">
+    <div class="results-count">
+        <i class="bi bi-grid-3x3"></i>
+        <strong>{{ results_count }}</strong> service{{ results_count|pluralize }} found
+    </div>
+    <div class="sort-wrapper">
+        <label for="sort_by" class="sort-label">
+            <i class="bi bi-filter-circle"></i> Sort by
+        </label>
+        <form method="GET" action="{% url 'search_services' %}" class="d-inline">
+            <input type="hidden" name="q" value="{{ search_query }}">
+            <input type="hidden" name="category" value="{{ selected_category }}">
+            <input type="hidden" name="min_price" value="{{ min_price }}">
+            <input type="hidden" name="max_price" value="{{ max_price }}">
+            <select name="sort_by" id="sort_by" class="form-select-sort" onchange="this.form.submit()">
+                <option value="relevance" {% if selected_sort == 'relevance' %}selected{% endif %}>Most Relevant</option>
+                <option value="newest" {% if selected_sort == 'newest' %}selected{% endif %}>Newest First</option>
+                <option value="price_low" {% if selected_sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                <option value="price_high" {% if selected_sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                <option value="duration" {% if selected_sort == 'duration' %}selected{% endif %}>Duration</option>
+            </select>
+        </form>
+    </div>
+</div>
+
+<!-- Search Results -->
+{% if services %}
+<div class="row g-4">
+    {% for service in services %}
+    <div class="col-md-6 col-lg-4">
+        <div class="service-card-new">
+            <!-- Category Badge at Top -->
+            <div class="category-header">
+                <div class="category-pill">
+                    <i class="bi bi-star-fill me-1"></i>
+                    {{ service.get_category_display|upper }}
+                </div>
+            </div>
+
+            <!-- Card Content -->
+            <div class="card-content">
+                <!-- Service Title -->
+                <h3 class="service-title-new">{{ service.name }}</h3>
+
+                <!-- Provider Badge -->
+                <div class="provider-badge-new">
+                    <i class="bi bi-person-circle"></i>
+                    <span>{{ service.provider.get_full_name|default:service.provider.username }}</span>
+                </div>
+
+                <!-- Description -->
+                <p class="service-desc-new">{{ service.description|truncatewords:12 }}</p>
+
+                <!-- Meta Info Box -->
+                <div class="meta-box">
+                    <div class="meta-row">
+                        <i class="bi bi-clock-fill"></i>
+                        <span>{{ service.duration }} min</span>
+                    </div>
+                </div>
+
+                <!-- Price Section -->
+                <div class="price-section-new">
+                    <span class="price-label-new">PRICE</span>
+                    <div class="price-amount-new">€{{ service.price }}</div>
+                </div>
+
+                <!-- View Availability Button -->
+                <a href="{% url 'view_availability' service.id %}" class="btn-view-availability">
+                    View Availability
+                    <i class="bi bi-calendar-check ms-2"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state-premium">
+    <div class="empty-icon">
+        <i class="bi bi-search"></i>
+    </div>
+    <h3>No services found</h3>
+    <p>Try adjusting your search filters or browse all services</p>
+    <a href="{% url 'browse_providers' %}" class="btn-browse-all">
+        <i class="bi bi-grid-3x3 me-2"></i>Browse All Services
+    </a>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Search Filter Section */
+.search-filter-section {
+    background: white;
+    padding: 25px;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.input-group-modern {
+    position: relative;
+}
+
+.input-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #667eea;
+    font-size: 1.1rem;
+    z-index: 2;
+}
+
+.form-control-modern {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.form-control-modern:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-select-modern {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.form-select-modern:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.btn-filter-modern {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-filter-modern:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(102, 126, 234, 0.4);
+}
+
+/* Results Header */
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.results-count {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #2d3748;
+    font-size: 1.05rem;
+}
+
+.results-count i {
+    color: #667eea;
+    font-size: 1.3rem;
+}
+
+.sort-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sort-label {
+    color: #718096;
+    font-size: 0.9rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.form-select-sort {
+    padding: 8px 35px 8px 12px;
+    border: 2px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    background: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.form-select-sort:focus {
+    outline: none;
+    border-color: #667eea;
+}
+
+/* New Service Cards - Matching Design */
+.service-card-new {
+    background: white;
+    border-radius: 20px;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.service-card-new:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 12px 32px rgba(102, 126, 234, 0.2);
+}
+
+/* Category Header with Gradient Background */
+.category-header {
+    background: linear-gradient(135deg, #5b7dff 0%, #4a66ff 100%);
+    padding: 30px 25px 20px 25px;
+    border-radius: 20px 20px 0 0;
+}
+
+.category-pill {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(255, 255, 255, 0.25);
+    border: 2px solid rgba(255, 255, 255, 0.4);
+    color: white;
+    padding: 8px 18px;
+    border-radius: 25px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
+.category-pill i {
+    font-size: 0.7rem;
+}
+
+/* Card Content */
+.card-content {
+    padding: 30px 25px;
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.service-title-new {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #1a202c;
+    margin-bottom: 15px;
+    line-height: 1.3;
+}
+
+.provider-badge-new {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f0f4ff;
+    color: #5b7dff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    width: fit-content;
+}
+
+.provider-badge-new i {
+    font-size: 1.1rem;
+}
+
+.service-desc-new {
+    color: #4a5568;
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 25px;
+    flex-grow: 1;
+}
+
+/* Meta Info Box */
+.meta-box {
+    background: #f7fafc;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+}
+
+.meta-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #2d3748;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.meta-row i {
+    color: #5b7dff;
+    font-size: 1.1rem;
+}
+
+/* Price Section */
+.price-section-new {
+    text-align: right;
+    margin-bottom: 25px;
+}
+
+.price-label-new {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #718096;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.price-amount-new {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #5b7dff;
+    line-height: 1;
+}
+
+/* View Availability Button */
+.btn-view-availability {
+    background: linear-gradient(135deg, #5b7dff 0%, #4a66ff 100%);
+    color: white;
+    padding: 16px 24px;
+    border-radius: 15px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(91, 125, 255, 0.3);
+}
+
+.btn-view-availability:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(91, 125, 255, 0.4);
+    color: white;
+}
+
+.btn-view-availability i {
+    font-size: 1.1rem;
+}
+
+/* Empty State */
+.empty-state-premium {
+    text-align: center;
+    padding: 80px 20px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.empty-icon {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 25px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.empty-icon i {
+    font-size: 4rem;
+    color: #cbd5e0;
+}
+
+.empty-state-premium h3 {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin-bottom: 12px;
+}
+
+.empty-state-premium p {
+    font-size: 1.05rem;
+    color: #718096;
+    margin-bottom: 25px;
+}
+
+.btn-browse-all {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 14px 35px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.btn-browse-all:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+    color: white;
+}
+
+.btn-header {
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .results-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .sort-wrapper {
+        width: 100%;
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .form-select-sort {
+        width: 100%;
+    }
+
+    .service-title-new {
+        font-size: 1.3rem;
+    }
+
+    .price-amount-new {
+        font-size: 2rem;
+    }
+
+    .category-header {
+        padding: 25px 20px 15px 20px;
+    }
+
+    .card-content {
+        padding: 25px 20px;
+    }
+}
+</style>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "superadmin/dashboard.html" %}
+
+{% block title %}Service Management - Superadmin{% endblock %}
+
+{% block content %}
+<div class="superadmin-wrapper">
+    <div class="superadmin-header">
+        <div class="container">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="superadmin-title">
+                        <i class="bi bi-shield-lock-fill"></i> Superadmin Control Panel
+                    </h1>
+                    <p class="superadmin-subtitle">Manage your booking system</p>
+                </div>
+                <a href="{% url 'dashboard' %}" class="btn-light">
+                    <i class="bi bi-house-door-fill me-2"></i>Dashboard
+                </a>
+            </div>
+            <nav class="superadmin-nav">
+                <a href="{% url 'superadmin_dashboard' %}">
+                    <i class="bi bi-speedometer2 me-1"></i> Overview
+                </a>
+                <a href="{% url 'superadmin_users' %}">
+                    <i class="bi bi-people-fill me-1"></i> Users
+                </a>
+                <a href="{% url 'superadmin_services' %}" class="active">
+                    <i class="bi bi-briefcase-fill me-1"></i> Services
+                </a>
+                <a href="{% url 'superadmin_notifications' %}">
+                    <i class="bi bi-bell-fill me-1"></i> Notifications
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <div class="container mt-4 pb-5">
+        <!-- Statistics Mini Cards -->
+        <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-briefcase-fill"></i></div>
+                <div class="stat-value">{{ service_stats.total }}</div>
+                <div class="stat-label">Total Services</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
+                <div class="stat-value">{{ service_stats.active }}</div>
+                <div class="stat-label">Active</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon"><i class="bi bi-x-circle"></i></div>
+                <div class="stat-value">{{ service_stats.inactive }}</div>
+                <div class="stat-label">Inactive</div>
+            </div>
+        </div>
+
+        <!-- Service Management -->
+        <div class="dashboard-card">
+            <div class="card-header-admin">
+                <h3 class="card-title-admin">
+                    <i class="bi bi-briefcase-fill"></i> Service Management
+                </h3>
+            </div>
+
+            <!-- Search Box -->
+            <form method="GET" class="mb-3">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control" placeholder="Search services..." value="{{ search_query }}">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </form>
+
+            <!-- Filter Buttons -->
+            <div class="btn-group mb-4" role="group">
+                <a href="?{% if search_query %}search={{ search_query }}{% endif %}"
+                   class="btn {% if status_filter == 'all' and category_filter == 'all' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                    All Services
+                </a>
+                <a href="?status=active{% if search_query %}&search={{ search_query }}{% endif %}"
+                   class="btn {% if status_filter == 'active' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                    Active Only
+                </a>
+                <a href="?status=inactive{% if search_query %}&search={{ search_query }}{% endif %}"
+                   class="btn {% if status_filter == 'inactive' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
+                    Inactive Only
+                </a>
+            </div>
+
+            <!-- Services Table -->
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Service</th>
+                            <th>Provider</th>
+                            <th>Category</th>
+                            <th>Duration</th>
+                            <th>Price</th>
+                            <th>Created</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for service in services %}
+                        <tr>
+                            <td><strong>{{ service.name }}</strong></td>
+                            <td>{{ service.provider.username }}</td>
+                            <td><span class="badge-admin badge-provider">{{ service.get_category_display }}</span></td>
+                            <td>{{ service.duration }} min</td>
+                            <td><strong>€{{ service.price }}</strong></td>
+                            <td>{{ service.created_at|date:"M d, Y" }}</td>
+                            <td>
+                                {% if service.is_active %}
+                                    <span class="badge-admin badge-active">Active</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Inactive</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">No services found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
