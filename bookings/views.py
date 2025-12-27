@@ -2,7 +2,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from accounts.models import UserProfile
-from .models import Availability, Provider
+from .models import Availability, Provider, Booking
 
 
 @login_required
@@ -69,3 +69,18 @@ def browse_providers(request):
     }
 
     return render(request, 'bookings/browse_providers.html', context)
+
+
+@login_required
+def provider_bookings(request):
+    profile = UserProfile.objects.get(user=request.user)
+    if profile.user_type != "provider":
+        return redirect("dashboard")
+
+    bookings = Booking.objects.filter(
+        provider=request.user
+    ).select_related("customer").order_by("-date")
+
+    return render(request, "bookings/provider_bookings.html", {
+        "bookings": bookings
+    })

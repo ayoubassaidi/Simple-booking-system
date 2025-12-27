@@ -60,13 +60,21 @@
                 </a>
             </li>
             {% endif %}
+            {% if user.userprofile.user_type == 'provider' %}
             <li>
-                <a href="#">
+                <a href="{% url 'provider_bookings' %}">
                     <i class="bi bi-calendar3"></i>
                     <span>Bookings</span>
                 </a>
             </li>
+            {% elif user.userprofile.user_type == 'user' %}
             <li>
+                <a href="{% url '' %}">
+                    <i class="bi bi-calendar3"></i>
+                    <span>Bookings</span>
+                </a>
+            </li>
+            {% endif %}
                 <a href="#">
                     <i class="bi bi-bell"></i>
                     <span>Notifications</span>
