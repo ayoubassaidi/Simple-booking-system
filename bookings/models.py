@@ -50,7 +50,8 @@ class Provider(models.Model):
 
 class Availability(models.Model):
     provider = models.ForeignKey(User, on_delete=models.CASCADE)
-    service = models.ForeignKey('Service', on_delete=models.CASCADE, related_name='availability_slots', null=True, blank=True, help_text="Which service is available during this time")
+    service = models.ForeignKey('Service', on_delete=models.CASCADE, related_name='availability_slots',
+                                null=True, blank=True, help_text="Which service is available during this time")
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
@@ -91,19 +92,25 @@ class Service(models.Model):
     ]
 
     # Relationships
-    provider = models.ForeignKey(User, on_delete=models.CASCADE, related_name='services')
+    provider = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='services')
 
     # Service Information
-    name = models.CharField(max_length=200, help_text="e.g., Hair Styling, Math Tutoring")
+    name = models.CharField(
+        max_length=200, help_text="e.g., Hair Styling, Math Tutoring")
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
-    description = models.TextField(help_text="Describe what this service includes")
+    description = models.TextField(
+        help_text="Describe what this service includes")
 
     # Pricing & Duration
-    price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Price in EUR")
-    duration = models.IntegerField(choices=DURATION_CHOICES, default=60, help_text="Service duration")
+    price = models.DecimalField(
+        max_digits=10, decimal_places=2, help_text="Price in EUR")
+    duration = models.IntegerField(
+        choices=DURATION_CHOICES, default=60, help_text="Service duration")
 
     # Status
-    is_active = models.BooleanField(default=True, help_text="Is this service currently offered?")
+    is_active = models.BooleanField(
+        default=True, help_text="Is this service currently offered?")
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
@@ -141,10 +148,12 @@ class Notification(models.Model):
     ]
 
     # Recipient
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='notifications')
+    user = models.ForeignKey(
+        User, on_delete=models.CASCADE, related_name='notifications')
 
     # Notification details
-    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPES)
+    notification_type = models.CharField(
+        max_length=20, choices=NOTIFICATION_TYPES)
     title = models.CharField(max_length=200)
     message = models.TextField()
 
@@ -152,7 +161,8 @@ class Notification(models.Model):
     is_read = models.BooleanField(default=False)
 
     # Optional link
-    link = models.CharField(max_length=255, blank=True, null=True, help_text="URL to redirect when clicked")
+    link = models.CharField(max_length=255, blank=True,
+                            null=True, help_text="URL to redirect when clicked")
 
     # Timestamp
     created_at = models.DateTimeField(auto_now_add=True)
@@ -177,9 +187,29 @@ class Booking(models.Model):
     ]
 
     # Relationships
-    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings_as_customer')
-    provider = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bookings_as_provider')
-    service = models.ForeignKey('Service', on_delete=models.CASCADE, related_name='bookings')
+    customer = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='bookings_as_customer'
+    )
+    provider = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='bookings_as_provider'
+    )
+    service = models.ForeignKey(
+        'Service',
+        on_delete=models.CASCADE,
+        related_name='bookings'
+    )
+
+    # ADD THIS (IMPORTANT)
+    availability = models.OneToOneField(
+        Availability,
+        on_delete=models.CASCADE,
+        related_name='booking',
+        help_text="Booked availability slot"
+    )
 
     # Booking Details
     date = models.DateField()
@@ -187,62 +217,48 @@ class Booking(models.Model):
     end_time = models.TimeField()
 
     # Pricing
-    price = models.DecimalField(max_digits=10, decimal_places=2, help_text="Price at the time of booking")
+    price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        help_text="Price at the time of booking"
+    )
 
     # Status
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    status = models.CharField(
+        max_length=20,
+        choices=STATUS_CHOICES,
+        default='pending'
+    )
 
     # Notes
-    customer_notes = models.TextField(blank=True, null=True, help_text="Special requests from customer")
-    provider_notes = models.TextField(blank=True, null=True, help_text="Notes from provider")
+    customer_notes = models.TextField(blank=True, null=True)
+    provider_notes = models.TextField(blank=True, null=True)
 
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
-    class Meta:
-        ordering = ['-created_at']
-        verbose_name = 'Booking'
-        verbose_name_plural = 'Bookings'
-        indexes = [
-            models.Index(fields=['customer', '-created_at']),
-            models.Index(fields=['provider', '-created_at']),
-            models.Index(fields=['date', 'start_time']),
-        ]
-
-    def __str__(self):
-        return f"{self.service.name} - {self.customer.username} on {self.date}"
-
-    @property
-    def is_upcoming(self):
-        """Check if booking is in the future"""
-        from datetime import datetime, date
-        booking_datetime = datetime.combine(self.date, self.start_time)
-        return booking_datetime > datetime.now() and self.status in ['pending', 'confirmed']
-
-    @property
-    def is_past(self):
-        """Check if booking is in the past"""
-        from datetime import datetime, date
-        booking_datetime = datetime.combine(self.date, self.start_time)
-        return booking_datetime < datetime.now()
-
 
 class SearchQuery(models.Model):
     """Track search queries for analytics and improvement"""
 
-    query = models.CharField(max_length=255, help_text="Search query entered by user")
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='search_queries')
+    query = models.CharField(
+        max_length=255, help_text="Search query entered by user")
+    user = models.ForeignKey(User, on_delete=models.SET_NULL,
+                             null=True, blank=True, related_name='search_queries')
 
     # Filters applied
     category = models.CharField(max_length=50, blank=True, null=True)
     location = models.CharField(max_length=100, blank=True, null=True)
-    min_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
-    max_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    min_price = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True)
+    max_price = models.DecimalField(
+        max_digits=10, decimal_places=2, null=True, blank=True)
 
     # Results
     results_count = models.IntegerField(default=0)
-    clicked_service = models.ForeignKey('Service', on_delete=models.SET_NULL, null=True, blank=True, related_name='search_clicks')
+    clicked_service = models.ForeignKey(
+        'Service', on_delete=models.SET_NULL, null=True, blank=True, related_name='search_clicks')
 
     # Metadata
     created_at = models.DateTimeField(auto_now_add=True)
