@@ -72,7 +72,7 @@
             {% for slot in time_slots %}
             <button type="button"
                     class="time-slot {% if slot.is_available %}available{% else %}booked{% endif %}"
-                    data-time="{{ slot.time }}"
+                    data-slot-id="{{ slot.id }}"
                     data-display="{{ slot.display_time }}"
                     {% if not slot.is_available %}disabled{% endif %}>
                 {{ slot.display_time }}
@@ -127,10 +127,20 @@
         <a href="{% url 'browse_providers' %}" class="btn btn-secondary btn-lg">
             <i class="bi bi-arrow-left me-2"></i>Back
         </a>
-        <button type="button" class="btn btn-primary btn-lg" id="continueBooking" disabled>
-            Continue to Booking
-        </button>
+
+        <form method="POST" action="{% url 'confirm_booking' service.id %}" id="bookingForm">
+            {% csrf_token %}
+            <input type="hidden" name="availability_id" id="availabilityInput">
+
+            <button type="submit"
+                    class="btn btn-primary btn-lg"
+                    id="continueBooking"
+                    disabled>
+                Continue to Booking
+            </button>
+        </form>
     </div>
+
 </div>
 
 {% endblock %}
@@ -488,26 +498,45 @@
 {% block extra_js %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('=== BOOKING SCRIPT LOADED ===');
+    
     const timeSlots = document.querySelectorAll('.time-slot.available');
     const selectedTimeCard = document.getElementById('selectedTimeCard');
     const selectedDateTime = document.getElementById('selectedDateTime');
     const continueBooking = document.getElementById('continueBooking');
     const clearSelection = document.getElementById('clearSelection');
     const selectedDate = "{{ selected_date|date:'D, M d, Y' }}";
+    const availabilityInput = document.getElementById('availabilityInput');
+    const bookingForm = document.getElementById('bookingForm');
 
-    let selectedTime = null;
+    console.log('Available slots count:', timeSlots.length);
+    console.log('Form element:', bookingForm);
+    console.log('Hidden input element:', availabilityInput);
 
     // Handle time slot selection
     timeSlots.forEach(slot => {
-        slot.addEventListener('click', function() {
+        slot.addEventListener('click', function(e) {
+            e.preventDefault();
+            
+            console.log('=== SLOT CLICKED ===');
+            console.log('Slot ID:', this.dataset.slotId);
+            console.log('Display Time:', this.dataset.display);
+            
             // Remove previous selection
             timeSlots.forEach(s => s.classList.remove('selected'));
 
             // Add selection to clicked slot
             this.classList.add('selected');
 
-            // Get selected time
-            selectedTime = this.dataset.display;
+            // Get selected slot ID and time
+            const slotId = this.dataset.slotId;
+            const selectedTime = this.dataset.display;
+
+            // Update hidden input - CRITICAL
+            availabilityInput.value = slotId;
+            
+            console.log('Hidden input value NOW:', availabilityInput.value);
+            console.log('Hidden input name:', availabilityInput.name);
 
             // Show selected time card
             selectedDateTime.textContent = `${selectedDate} at ${selectedTime}`;
@@ -519,19 +548,31 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Clear selection
-    clearSelection.addEventListener('click', function() {
+    clearSelection.addEventListener('click', function(e) {
+        e.preventDefault();
+        console.log('=== CLEARING SELECTION ===');
+        
         timeSlots.forEach(s => s.classList.remove('selected'));
         selectedTimeCard.style.display = 'none';
         continueBooking.disabled = true;
-        selectedTime = null;
+        availabilityInput.value = '';
+        
+        console.log('Hidden input cleared:', availabilityInput.value);
     });
 
-    // Continue to booking
-    continueBooking.addEventListener('click', function() {
-        if (selectedTime) {
-            alert('Proceeding to booking confirmation...\n\nService: {{ service.name }}\nDate: ' + selectedDate + '\nTime: ' + selectedTime);
-            // TODO: Navigate to booking confirmation page
+    // Form submission - REMOVE VALIDATION
+    bookingForm.addEventListener('submit', function(e) {
+        console.log('=== FORM SUBMITTING ===');
+        console.log('Hidden input value on submit:', availabilityInput.value);
+        console.log('Form data:', new FormData(bookingForm));
+        
+        // Log all form data
+        const formData = new FormData(bookingForm);
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}: ${value}`);
         }
+        
+        // Don't prevent default - let it submit
     });
 });
 </script>

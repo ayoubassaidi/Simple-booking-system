@@ -1,0 +1,541 @@
+{% extends 'dashboard_base.html' %}
+{% load static %}
+
+{% block title %}My Bookings{% endblock %}
+
+{% block page_title %}My Bookings{% endblock %}
+{% block page_subtitle %}View and manage your service appointments{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'browse_providers' %}" class="btn btn-primary btn-header">
+    <i class="bi bi-search me-2"></i>Book New Service
+</a>
+{% endblock %}
+
+{% block dashboard_content %}
+
+<!-- Stats Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon total">
+                <i class="bi bi-calendar-check"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-value">{{ bookings|length }}</div>
+                <div class="stat-label">Total Bookings</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon confirmed">
+                <i class="bi bi-check-circle"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-value">{{ bookings|length }}</div>
+                <div class="stat-label">Confirmed</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon upcoming">
+                <i class="bi bi-clock-history"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-value">{{ bookings|length }}</div>
+                <div class="stat-label">Upcoming</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <div class="stat-icon spent">
+                <i class="bi bi-currency-euro"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-value">€{% widthratio bookings|length 1 50 %}</div>
+                <div class="stat-label">Total Spent</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bookings List -->
+<div class="bookings-container">
+    {% if bookings %}
+        {% for booking in bookings %}
+        <div class="booking-card">
+            <div class="booking-header">
+                <div class="booking-status status-{{ booking.status }}">
+                    <i class="bi bi-check-circle-fill"></i>
+                    {{ booking.get_status_display|default:"Confirmed" }}
+                </div>
+                <div class="booking-date-badge">
+                    <i class="bi bi-calendar3"></i>
+                    {{ booking.date|date:"M d, Y" }}
+                </div>
+            </div>
+
+            <div class="booking-body">
+                <div class="row">
+                    <!-- Service Info -->
+                    <div class="col-md-6">
+                        <div class="service-info">
+                            <div class="service-icon">
+                                <i class="bi bi-briefcase-fill"></i>
+                            </div>
+                            <div>
+                                <h5 class="service-name">{{ booking.service.name }}</h5>
+                                <p class="service-category">
+                                    <i class="bi bi-tag"></i>
+                                    {{ booking.service.get_category_display }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Provider Info -->
+                        <div class="provider-info mt-3">
+                            <div class="provider-avatar-small">
+                                <i class="bi bi-person-circle"></i>
+                            </div>
+                            <div>
+                                <div class="provider-label">Service Provider</div>
+                                <div class="provider-name-small">
+                                    {{ booking.provider.get_full_name|default:booking.provider.username }}
+                                </div>
+                                {% if booking.provider.userprofile.city %}
+                                <div class="provider-location">
+                                    <i class="bi bi-geo-alt"></i>
+                                    {{ booking.provider.userprofile.city }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Booking Details -->
+                    <div class="col-md-6">
+                        <div class="booking-details">
+                            <div class="detail-row">
+                                <div class="detail-icon">
+                                    <i class="bi bi-clock"></i>
+                                </div>
+                                <div>
+                                    <div class="detail-label">Time</div>
+                                    <div class="detail-value">
+                                        {{ booking.start_time|time:"g:i A" }} - {{ booking.end_time|time:"g:i A" }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="detail-row">
+                                <div class="detail-icon">
+                                    <i class="bi bi-hourglass-split"></i>
+                                </div>
+                                <div>
+                                    <div class="detail-label">Duration</div>
+                                    <div class="detail-value">{{ booking.service.duration }} minutes</div>
+                                </div>
+                            </div>
+
+                            <div class="detail-row">
+                                <div class="detail-icon">
+                                    <i class="bi bi-currency-euro"></i>
+                                </div>
+                                <div>
+                                    <div class="detail-label">Price</div>
+                                    <div class="detail-value price">€{{ booking.price }}</div>
+                                </div>
+                            </div>
+
+                            <div class="detail-row">
+                                <div class="detail-icon">
+                                    <i class="bi bi-receipt"></i>
+                                </div>
+                                <div>
+                                    <div class="detail-label">Booking ID</div>
+                                    <div class="detail-value">#{{ booking.id }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="booking-footer">
+                <div class="booking-actions">
+                    <button class="btn btn-outline-primary btn-sm">
+                        <i class="bi bi-chat-dots me-1"></i>
+                        Contact Provider
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm" 
+                            onclick="confirmCancel({{ booking.id }}, '{{ booking.service.name }}')">
+                        <i class="bi bi-x-circle me-1"></i>
+                        Cancel Booking
+                    </button>
+                </div>
+                <div class="booking-created">
+                    Booked on {{ booking.created_at|date:"M d, Y" }}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <!-- Empty State -->
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="bi bi-calendar-x"></i>
+            </div>
+            <h3>No Bookings Yet</h3>
+            <p>You haven't made any bookings yet. Browse our services and book your first appointment!</p>
+            <a href="{% url 'browse_providers' %}" class="btn btn-primary btn-lg mt-3">
+                <i class="bi bi-search me-2"></i>Browse Services
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Cancel Booking Modal -->
+<div class="modal fade" id="cancelModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Cancel Booking</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to cancel your booking for <strong id="cancelServiceName"></strong>?</p>
+                <p class="text-muted">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Keep Booking</button>
+                <form method="POST" action="" id="cancelForm">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Yes, Cancel Booking</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Stats Cards */
+.stat-card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: white;
+}
+
+.stat-icon.total {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.stat-icon.confirmed {
+    background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+}
+
+.stat-icon.upcoming {
+    background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+}
+
+.stat-icon.spent {
+    background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+}
+
+.stat-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #718096;
+}
+
+/* Bookings Container */
+.bookings-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Booking Card */
+.booking-card {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+}
+
+.booking-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-2px);
+}
+
+/* Booking Header */
+.booking-header {
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    padding: 15px 25px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.booking-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.status-confirmed {
+    background: #c6f6d5;
+    color: #22543d;
+}
+
+.booking-date-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #4a5568;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+/* Booking Body */
+.booking-body {
+    padding: 25px;
+}
+
+/* Service Info */
+.service-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.service-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.8rem;
+}
+
+.service-name {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #2d3748;
+    margin: 0 0 5px 0;
+}
+
+.service-category {
+    color: #718096;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+/* Provider Info */
+.provider-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    background: #f7fafc;
+    border-radius: 10px;
+}
+
+.provider-avatar-small {
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.provider-label {
+    font-size: 0.75rem;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.provider-name-small {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 0.95rem;
+}
+
+.provider-location {
+    font-size: 0.85rem;
+    color: #718096;
+    margin-top: 2px;
+}
+
+/* Booking Details */
+.booking-details {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.detail-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.detail-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #667eea;
+    font-size: 1.2rem;
+}
+
+.detail-label {
+    font-size: 0.8rem;
+    color: #718096;
+    margin-bottom: 2px;
+}
+
+.detail-value {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 1rem;
+}
+
+.detail-value.price {
+    font-size: 1.3rem;
+    color: #667eea;
+}
+
+/* Booking Footer */
+.booking-footer {
+    padding: 20px 25px;
+    background: #f7fafc;
+    border-top: 2px solid #e2e8f0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.booking-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.booking-created {
+    font-size: 0.85rem;
+    color: #718096;
+}
+
+/* Empty State */
+.empty-state {
+    background: white;
+    border-radius: 16px;
+    padding: 60px 40px;
+    text-align: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.empty-icon {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 20px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4rem;
+    color: #667eea;
+}
+
+.empty-state h3 {
+    color: #2d3748;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.empty-state p {
+    color: #718096;
+    font-size: 1.05rem;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .booking-body .row {
+        flex-direction: column;
+    }
+
+    .booking-footer {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
+    }
+
+    .booking-actions {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .booking-actions .btn {
+        width: 100%;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmCancel(bookingId, serviceName) {
+    document.getElementById('cancelServiceName').textContent = serviceName;
+    document.getElementById('cancelForm').action = `/cancel-booking/${bookingId}/`;
+    
+    const modal = new bootstrap.Modal(document.getElementById('cancelModal'));
+    modal.show();
+}
+</script>
+{% endblock %}

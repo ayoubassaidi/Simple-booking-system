@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Count
 from accounts.models import UserProfile
-from .models import Availability, Provider, Service, SearchQuery
+from .models import Availability, Provider, Service, SearchQuery, Booking
 from .forms import ServiceForm
 
 
@@ -16,7 +16,8 @@ def add_availability(request):
         return redirect("dashboard")
 
     # Get provider's services for the dropdown
-    provider_services = Service.objects.filter(provider=request.user, is_active=True)
+    provider_services = Service.objects.filter(
+        provider=request.user, is_active=True)
 
     if request.method == "POST":
         service_id = request.POST.get("service")
@@ -35,7 +36,8 @@ def add_availability(request):
         messages.success(request, "Availability slot added successfully!")
         return redirect("add_availability")
 
-    slots = Availability.objects.filter(provider=request.user).select_related('service').order_by("date", "start_time")
+    slots = Availability.objects.filter(provider=request.user).select_related(
+        'service').order_by("date", "start_time")
 
     return render(request, "bookings/add_availability.html", {
         "slots": slots,
@@ -46,7 +48,8 @@ def add_availability(request):
 # Browse Service Providers - Shows all active services
 def browse_providers(request):
     # Start with all active services
-    services = Service.objects.filter(is_active=True).select_related('provider')
+    services = Service.objects.filter(
+        is_active=True).select_related('provider')
 
     # Get search parameters from URL
     category = request.GET.get('category', '')
@@ -101,7 +104,8 @@ def my_services(request):
     try:
         profile = UserProfile.objects.get(user=request.user)
         if profile.user_type != 'provider':
-            messages.error(request, 'Only service providers can manage services.')
+            messages.error(
+                request, 'Only service providers can manage services.')
             return redirect('dashboard')
     except UserProfile.DoesNotExist:
         messages.error(request, 'Please complete your profile first.')
@@ -144,7 +148,8 @@ def add_service(request):
             service = form.save(commit=False)
             service.provider = request.user
             service.save()
-            messages.success(request, f'Service "{service.name}" added successfully!')
+            messages.success(
+                request, f'Service "{service.name}" added successfully!')
             return redirect('my_services')
     else:
         form = ServiceForm()
@@ -168,7 +173,8 @@ def edit_service(request, service_id):
         form = ServiceForm(request.POST, instance=service)
         if form.is_valid():
             form.save()
-            messages.success(request, f'Service "{service.name}" updated successfully!')
+            messages.success(
+                request, f'Service "{service.name}" updated successfully!')
             return redirect('my_services')
     else:
         form = ServiceForm(instance=service)
@@ -191,7 +197,8 @@ def delete_service(request, service_id):
     if request.method == 'POST':
         service_name = service.name
         service.delete()
-        messages.success(request, f'Service "{service_name}" deleted successfully!')
+        messages.success(
+            request, f'Service "{service_name}" deleted successfully!')
         return redirect('my_services')
 
     context = {
@@ -210,7 +217,8 @@ def toggle_service_status(request, service_id):
     service.save()
 
     status_text = 'activated' if service.is_active else 'deactivated'
-    messages.success(request, f'Service "{service.name}" {status_text} successfully!')
+    messages.success(
+        request, f'Service "{service.name}" {status_text} successfully!')
 
     return redirect('my_services')
 
@@ -228,7 +236,8 @@ def search_services(request):
     sort_by = request.GET.get('sort_by', 'relevance')
 
     # Start with all active services
-    services = Service.objects.filter(is_active=True).select_related('provider')
+    services = Service.objects.filter(
+        is_active=True).select_related('provider')
 
     # Apply search query - search across service name, description, and provider name
     if query:
@@ -318,7 +327,8 @@ def view_availability(request, service_id):
     selected_date_str = request.GET.get('date')
     if selected_date_str:
         try:
-            selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+            selected_date = datetime.strptime(
+                selected_date_str, '%Y-%m-%d').date()
         except ValueError:
             selected_date = datetime.now().date()
     else:
@@ -343,26 +353,36 @@ def view_availability(request, service_id):
         date=selected_date
     ).order_by('start_time')
 
+    # Create a lookup dictionary for quick access
+    slot_lookup = {}
+    for slot in availability_slots:
+        hour = slot.start_time.hour
+        slot_lookup[hour] = slot
+
     # Generate time slots for the day (9 AM to 6 PM in 1-hour intervals)
     time_slots = []
     for hour in range(9, 18):
         time_obj = datetime.strptime(f'{hour:02d}:00', '%H:%M').time()
+        display_time = datetime.strptime(
+            f'{hour:02d}:00', '%H:%M').strftime('%I:%M %p')
 
-        # Check if this time slot is available
-        is_available = availability_slots.filter(
-            start_time__lte=time_obj,
-            end_time__gt=time_obj,
-            is_available=True
-        ).exists()
-
-        # Format time for display
-        display_time = datetime.strptime(f'{hour:02d}:00', '%H:%M').strftime('%I:%M %p')
-
-        time_slots.append({
-            'time': time_obj.strftime('%H:%M'),
-            'display_time': display_time,
-            'is_available': is_available
-        })
+        # Check if there's an availability slot for this hour
+        if hour in slot_lookup:
+            slot = slot_lookup[hour]
+            time_slots.append({
+                'id': slot.id,
+                'time': time_obj.strftime('%H:%M'),
+                'display_time': display_time,
+                'is_available': slot.is_available
+            })
+        else:
+            # Show as unavailable if no slot exists
+            time_slots.append({
+                'id': None,
+                'time': time_obj.strftime('%H:%M'),
+                'display_time': display_time,
+                'is_available': False
+            })
 
     context = {
         'service': service,
@@ -372,3 +392,148 @@ def view_availability(request, service_id):
     }
 
     return render(request, 'bookings/view_availability.html', context)
+# ==========================================
+# Confirm booking
+# ==========================================
+
+
+@login_required
+def confirm_booking(request, service_id):
+    if request.method != "POST":
+        messages.error(request, "Invalid request method.")
+        return redirect("browse_providers")
+
+    availability_id = request.POST.get("availability_id")
+
+    # Debug logging
+    print("=" * 50)
+    print("CONFIRM BOOKING DEBUG")
+    print("=" * 50)
+    print(f"Service ID: {service_id}")
+    print(f"Availability ID from POST: {availability_id}")
+    print(f"All POST data: {request.POST}")
+    print("=" * 50)
+
+    if not availability_id:
+        messages.error(request, "Please select a time slot.")
+        return redirect("view_availability", service_id=service_id)
+
+    try:
+        availability = Availability.objects.get(
+            id=availability_id,
+            is_available=True
+        )
+    except Availability.DoesNotExist:
+        messages.error(request, "Selected time slot is not available.")
+        return redirect("view_availability", service_id=service_id)
+
+    service = get_object_or_404(Service, id=service_id)
+
+    # Prevent double booking
+    if hasattr(availability, "booking"):
+        messages.error(request, "This slot is already booked.")
+        return redirect("view_availability", service_id=service_id)
+
+    # CREATE BOOKING
+    try:
+        booking = Booking.objects.create(
+            customer=request.user,
+            provider=availability.provider,
+            service=service,
+            availability=availability,
+            date=availability.date,
+            start_time=availability.start_time,
+            end_time=availability.end_time,
+            price=service.price,
+            status="confirmed"
+        )
+
+        # Mark slot unavailable
+        availability.is_available = False
+        availability.save()
+
+        messages.success(
+            request, f"Booking confirmed! Your appointment is on {availability.date} at {availability.start_time}.")
+        return redirect("my_bookings")
+
+    except Exception as e:
+        print(f"Error creating booking: {e}")
+        messages.error(
+            request, "An error occurred while creating your booking. Please try again.")
+        return redirect("view_availability", service_id=service_id)
+
+
+# ==========================================
+# Bookings Page for Provider
+# ==========================================
+
+@login_required
+def provider_bookings(request):
+    profile = UserProfile.objects.get(user=request.user)
+    if profile.user_type != "provider":
+        return redirect("dashboard")
+
+    bookings = Booking.objects.filter(
+        provider=request.user
+    ).select_related("service", "customer").order_by("-date", "-start_time")
+
+    return render(request, "bookings/provider_bookings.html", {
+        "bookings": bookings
+    })
+
+
+# ==========================================
+# Bookings Page for User
+# ==========================================
+
+@login_required
+def my_bookings(request):
+    bookings = Booking.objects.filter(
+        customer=request.user
+    ).select_related("service", "provider").order_by("-date", "-start_time")
+
+    return render(request, "bookings/my_bookings.html", {
+        "bookings": bookings
+    })
+
+# ==========================================
+# Cancel Booking
+# ==========================================
+
+
+@login_required
+def cancel_booking(request, booking_id):
+    """Cancel a booking and free up the availability slot"""
+
+    # Get the booking and ensure it belongs to the current user
+    booking = get_object_or_404(
+        Booking,
+        id=booking_id,
+        customer=request.user
+    )
+
+    if request.method == "POST":
+        # Get the associated availability slot
+        availability = booking.availability
+
+        # Store booking details for the message
+        service_name = booking.service.name
+        booking_date = booking.date
+
+        # Free up the availability slot
+        if availability:
+            availability.is_available = True
+            availability.save()
+
+        # Delete the booking
+        booking.delete()
+
+        messages.success(
+            request,
+            f'Your booking for "{service_name}" on {booking_date} has been cancelled successfully.'
+        )
+
+        return redirect('my_bookings')
+
+    # If GET request, redirect to bookings page
+    return redirect('my_bookings')
