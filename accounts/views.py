@@ -480,6 +480,33 @@ def superadmin_dashboard(request):
 @superadmin_required
 def superadmin_users(request):
     """User management interface"""
+    # Handle POST requests for user actions
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        user_id = request.POST.get('user_id')
+
+        try:
+            target_user = User.objects.get(id=user_id)
+
+            if action == 'toggle_active':
+                # Toggle user active status
+                target_user.is_active = not target_user.is_active
+                target_user.save()
+                status = 'activated' if target_user.is_active else 'deactivated'
+                messages.success(request, f'User {target_user.username} has been {status}.')
+
+            elif action == 'reset_password':
+                # Reset password to default
+                new_password = request.POST.get('new_password', 'password123')
+                target_user.set_password(new_password)
+                target_user.save()
+                messages.success(request, f'Password for {target_user.username} has been reset to: {new_password}')
+
+        except User.DoesNotExist:
+            messages.error(request, 'User not found.')
+
+        return redirect('superadmin_users')
+
     # Get all users with their profiles
     users = User.objects.select_related('userprofile').order_by('-date_joined')
 
