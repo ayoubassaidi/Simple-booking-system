@@ -11,8 +11,8 @@ from .forms import ServiceForm
 @login_required
 def add_availability(request):
     # Ensure only providers can access
-    profile = UserProfile.objects.get(user=request.user)
-    if profile.user_type != "provider":
+    if not ProviderProfile.is_provider(request.user):
+        messages.error(request, "Only service providers can access this page.")
         return redirect("dashboard")
 
     # Get provider's services for the dropdown
@@ -101,14 +101,8 @@ def browse_providers(request):
 def my_services(request):
     """List all services for the logged-in provider"""
     # Ensure only providers can access
-    try:
-        profile = UserProfile.objects.get(user=request.user)
-        if profile.user_type != 'provider':
-            messages.error(
-                request, 'Only service providers can manage services.')
-            return redirect('dashboard')
-    except UserProfile.DoesNotExist:
-        messages.error(request, 'Please complete your profile first.')
+    if not ProviderProfile.is_provider(request.user):
+        messages.error(request, 'Only service providers can manage services.')
         return redirect('dashboard')
 
     # Get all services for this provider
@@ -133,13 +127,8 @@ def my_services(request):
 def add_service(request):
     """Add a new service"""
     # Ensure only providers can access
-    try:
-        profile = UserProfile.objects.get(user=request.user)
-        if profile.user_type != 'provider':
-            messages.error(request, 'Only service providers can add services.')
-            return redirect('dashboard')
-    except UserProfile.DoesNotExist:
-        messages.error(request, 'Please complete your profile first.')
+    if not ProviderProfile.is_provider(request.user):
+        messages.error(request, 'Only service providers can add services.')
         return redirect('dashboard')
 
     if request.method == 'POST':
@@ -323,13 +312,9 @@ def view_availability(request, service_id):
     from datetime import datetime, timedelta
 
     # Prevent providers from viewing availability to book
-    try:
-        user_profile = UserProfile.objects.get(user=request.user)
-        if user_profile.user_type == 'provider':
-            messages.error(request, "Service providers cannot book services. This page is only for customers.")
-            return redirect("browse_providers")
-    except UserProfile.DoesNotExist:
-        pass  # Allow users without profiles to view
+    if ProviderProfile.is_provider(request.user):
+        messages.error(request, "Service providers cannot book services. This page is only for customers.")
+        return redirect("browse_providers")
 
     service = get_object_or_404(Service, id=service_id, is_active=True)
 
@@ -411,13 +396,9 @@ def view_availability(request, service_id):
 def confirm_booking(request, service_id):
     """Confirm a booking - Only customers can book, providers cannot"""
     # Prevent providers from booking services
-    try:
-        user_profile = UserProfile.objects.get(user=request.user)
-        if user_profile.user_type == 'provider':
-            messages.error(request, "Service providers cannot book services. Only customers can make bookings.")
-            return redirect("browse_providers")
-    except UserProfile.DoesNotExist:
-        pass  # Allow users without profiles to book
+    if ProviderProfile.is_provider(request.user):
+        messages.error(request, "Service providers cannot book services. Only customers can make bookings.")
+        return redirect("browse_providers")
 
     if request.method != "POST":
         messages.error(request, "Invalid request method.")
@@ -489,8 +470,8 @@ def confirm_booking(request, service_id):
 
 @login_required
 def provider_bookings(request):
-    profile = UserProfile.objects.get(user=request.user)
-    if profile.user_type != "provider":
+    if not ProviderProfile.is_provider(request.user):
+        messages.error(request, "Only service providers can access this page.")
         return redirect("dashboard")
 
     # Handle booking actions (accept, reject, complete)

@@ -178,6 +178,22 @@ class ProviderProfile(models.Model):
         """Return star representation of rating"""
         return '⭐' * int(self.rating)
 
+    @staticmethod
+    def is_provider(user):
+        """Check if a user is a provider (has a ProviderProfile)"""
+        try:
+            return hasattr(user, 'provider_profile') and user.provider_profile is not None
+        except:
+            return False
+
+    @staticmethod
+    def get_provider_profile(user):
+        """Get the provider profile for a user, or None if not a provider"""
+        try:
+            return user.provider_profile
+        except ProviderProfile.DoesNotExist:
+            return None
+
 
 class Availability(models.Model):
     provider = models.ForeignKey(User, on_delete=models.CASCADE)

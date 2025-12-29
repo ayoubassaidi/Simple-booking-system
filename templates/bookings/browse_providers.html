@@ -1,4 +1,5 @@
 {% load static %}
+{% load provider_tags %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -23,7 +24,7 @@
             <div class="nav-buttons">
                 {% if user.is_authenticated %}
                     <span class="user-type-badge">
-                        {% if user.userprofile.user_type == 'provider' %}
+                        {% if user|is_provider %}
                             <i class="bi bi-briefcase-fill"></i> Service Provider
                         {% else %}
                             <i class="bi bi-person-circle"></i> User
@@ -40,7 +41,7 @@
     </header>
 
     <!-- Provider Alert (if logged in as provider) -->
-    {% if user.is_authenticated and user.userprofile.user_type == 'provider' %}
+    {% if user.is_authenticated and user|is_provider %}
     <div class="container mt-3">
         <div class="alert alert-warning alert-dismissible fade show" role="alert">
             <i class="bi bi-exclamation-triangle-fill me-2"></i>
@@ -252,7 +253,7 @@
         }
 
         // Prevent providers from clicking "View Availability" - Show alert
-        {% if user.is_authenticated and user.userprofile.user_type == 'provider' %}
+        {% if user.is_authenticated and user|is_provider %}
         document.addEventListener('DOMContentLoaded', function() {
             const bookButtons = document.querySelectorAll('.btn-book-modern');
             bookButtons.forEach(function(button) {
