@@ -695,10 +695,21 @@ def superadmin_notifications(request):
         messages.success(request, f'Successfully sent notification to {len(notifications_to_create)} users!')
         return redirect('superadmin_notifications')
 
-    # Get recent notifications sent
-    recent_notifications = Notification.objects.filter(
-        notification_type='system'
-    ).order_by('-created_at')[:20]
+    # Get recent unique notifications sent (grouped by title and message to avoid duplicates)
+    # Using annotate to get one notification per unique title+message combination
+    from django.db.models import Min
+
+    seen_notifications = {}
+    all_notifications = Notification.objects.order_by('-created_at')
+    recent_notifications = []
+
+    for notif in all_notifications:
+        key = (notif.title, notif.message, notif.notification_type)
+        if key not in seen_notifications:
+            seen_notifications[key] = notif
+            recent_notifications.append(notif)
+            if len(recent_notifications) >= 20:
+                break
 
     context = {
         'recent_notifications': recent_notifications,

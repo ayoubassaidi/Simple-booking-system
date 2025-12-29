@@ -1,0 +1,109 @@
+{% extends "superadmin/base_superadmin.html" %}
+{% load static %}
+
+{% block extra_css %}
+<style>
+    body {
+        font-family: 'Inter', sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+    }
+
+    .hover-scale {
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .hover-scale:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    }
+
+    .nav-tab {
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .nav-tab::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 0;
+        height: 3px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        transition: width 0.3s ease;
+    }
+
+    .nav-tab:hover::after,
+    .nav-tab.active::after {
+        width: 100%;
+    }
+
+    .animate-fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+{% block page_css %}{% endblock %}
+{% endblock %}
+
+{% block content %}
+<div class="min-h-screen pb-12">
+    <!-- Header -->
+    <div class="glass-card shadow-2xl mb-8">
+        <div class="max-w-7xl mx-auto px-6 py-6">
+            <!-- Top Bar -->
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-4">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
+                        <i class="bi bi-shield-lock-fill text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Superadmin Control Panel</h1>
+                        <p class="text-gray-600 mt-1">{% block page_subtitle %}Manage and monitor your booking platform{% endblock %}</p>
+                    </div>
+                </div>
+                <a href="{% url 'dashboard' %}" class="px-6 py-3 bg-white border-2 border-gray-200 rounded-xl hover:border-purple-600 hover:text-purple-600 font-semibold transition-all duration-300 shadow-sm hover:shadow-md">
+                    <i class="bi bi-house-door-fill me-2"></i>Dashboard
+                </a>
+            </div>
+
+            <!-- Navigation Tabs -->
+            <nav class="flex space-x-8 border-b border-gray-200">
+                <a href="{% url 'superadmin_dashboard' %}" class="nav-tab {% block nav_overview %}{% endblock %} px-4 py-3 text-gray-600 hover:text-purple-700 font-semibold">
+                    <i class="bi bi-speedometer2 me-2"></i>Overview
+                </a>
+                <a href="{% url 'superadmin_users' %}" class="nav-tab {% block nav_users %}{% endblock %} px-4 py-3 text-gray-600 hover:text-purple-700 font-semibold">
+                    <i class="bi bi-people-fill me-2"></i>Users
+                </a>
+                <a href="{% url 'superadmin_services' %}" class="nav-tab {% block nav_services %}{% endblock %} px-4 py-3 text-gray-600 hover:text-purple-700 font-semibold">
+                    <i class="bi bi-briefcase-fill me-2"></i>Services
+                </a>
+                <a href="{% url 'superadmin_notifications' %}" class="nav-tab {% block nav_notifications %}{% endblock %} px-4 py-3 text-gray-600 hover:text-purple-700 font-semibold">
+                    <i class="bi bi-bell-fill me-2"></i>Notifications
+                </a>
+            </nav>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto px-6">
+        {% block page_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}

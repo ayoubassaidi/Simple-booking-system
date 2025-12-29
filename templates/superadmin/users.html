@@ -1,213 +1,239 @@
-{% extends "superadmin/dashboard.html" %}
+{% extends "superadmin/base_superadmin.html" %}
 
 {% block title %}User Management - Superadmin{% endblock %}
 
 {% block content %}
-<div class="superadmin-wrapper">
-    <div class="superadmin-header">
-        <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="superadmin-title">
-                        <i class="bi bi-shield-lock-fill"></i> Superadmin Control Panel
-                    </h1>
-                    <p class="superadmin-subtitle">Manage your booking system</p>
+<div class="min-h-screen pb-12">
+    <!-- Header -->
+    <div class="glass-effect shadow-xl mb-8">
+        <div class="max-w-7xl mx-auto px-6 py-6">
+            <!-- Top Bar -->
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-4">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
+                        <i class="bi bi-shield-lock-fill text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Superadmin Control Panel</h1>
+                        <p class="text-gray-600 mt-1">Manage your booking system</p>
+                    </div>
                 </div>
-                <a href="{% url 'dashboard' %}" class="btn-light">
+                <a href="{% url 'dashboard' %}" class="px-6 py-3 bg-white border-2 border-gray-200 rounded-xl hover:border-purple-600 hover:text-purple-600 font-semibold transition-all duration-300 shadow-sm hover:shadow-md">
                     <i class="bi bi-house-door-fill me-2"></i>Dashboard
                 </a>
             </div>
-            <nav class="superadmin-nav">
-                <a href="{% url 'superadmin_dashboard' %}">
-                    <i class="bi bi-speedometer2 me-1"></i> Overview
+
+            <!-- Navigation Tabs -->
+            <nav class="flex space-x-8 border-b border-gray-200">
+                <a href="{% url 'superadmin_dashboard' %}" class="px-4 py-3 text-gray-600 hover:text-purple-700 font-semibold border-b-3 border-transparent hover:border-purple-700 transition-all">
+                    <i class="bi bi-speedometer2 me-2"></i>Overview
                 </a>
-                <a href="{% url 'superadmin_users' %}" class="active">
-                    <i class="bi bi-people-fill me-1"></i> Users
+                <a href="{% url 'superadmin_users' %}" class="px-4 py-3 text-purple-700 font-semibold border-b-3 border-purple-700">
+                    <i class="bi bi-people-fill me-2"></i>Users
                 </a>
-                <a href="{% url 'superadmin_services' %}">
-                    <i class="bi bi-briefcase-fill me-1"></i> Services
+                <a href="{% url 'superadmin_services' %}" class="px-4 py-3 text-gray-600 hover:text-purple-700 font-semibold border-b-3 border-transparent hover:border-purple-700 transition-all">
+                    <i class="bi bi-briefcase-fill me-2"></i>Services
                 </a>
-                <a href="{% url 'superadmin_notifications' %}">
-                    <i class="bi bi-bell-fill me-1"></i> Notifications
+                <a href="{% url 'superadmin_notifications' %}" class="px-4 py-3 text-gray-600 hover:text-purple-700 font-semibold border-b-3 border-transparent hover:border-purple-700 transition-all">
+                    <i class="bi bi-bell-fill me-2"></i>Notifications
                 </a>
             </nav>
         </div>
     </div>
 
-    <div class="container mt-4 pb-5">
-        <!-- Statistics Mini Cards -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
-                <div class="stat-value">{{ user_stats.total }}</div>
-                <div class="stat-label">Total Users</div>
+    <div class="max-w-7xl mx-auto px-6">
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 animate-fade-in">
+            <div class="glass-effect rounded-2xl shadow-xl p-6 text-center transform hover:-translate-y-1 transition-all">
+                <i class="bi bi-people-fill text-4xl text-purple-600 mb-2"></i>
+                <h4 class="text-3xl font-bold text-gray-900">{{ user_stats.total }}</h4>
+                <p class="text-gray-600 text-sm mt-1">Total Users</p>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="bi bi-person"></i></div>
-                <div class="stat-value">{{ user_stats.users }}</div>
-                <div class="stat-label">Customers</div>
+            <div class="glass-effect rounded-2xl shadow-xl p-6 text-center transform hover:-translate-y-1 transition-all">
+                <i class="bi bi-person text-4xl text-blue-600 mb-2"></i>
+                <h4 class="text-3xl font-bold text-gray-900">{{ user_stats.users }}</h4>
+                <p class="text-gray-600 text-sm mt-1">Customers</p>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="bi bi-briefcase"></i></div>
-                <div class="stat-value">{{ user_stats.providers }}</div>
-                <div class="stat-label">Providers</div>
+            <div class="glass-effect rounded-2xl shadow-xl p-6 text-center transform hover:-translate-y-1 transition-all">
+                <i class="bi bi-briefcase text-4xl text-pink-600 mb-2"></i>
+                <h4 class="text-3xl font-bold text-gray-900">{{ user_stats.providers }}</h4>
+                <p class="text-gray-600 text-sm mt-1">Providers</p>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="bi bi-shield-check"></i></div>
-                <div class="stat-value">{{ user_stats.superadmins }}</div>
-                <div class="stat-label">Superadmins</div>
+            <div class="glass-effect rounded-2xl shadow-xl p-6 text-center transform hover:-translate-y-1 transition-all">
+                <i class="bi bi-shield-check text-4xl text-green-600 mb-2"></i>
+                <h4 class="text-3xl font-bold text-gray-900">{{ user_stats.superadmins }}</h4>
+                <p class="text-gray-600 text-sm mt-1">Superadmins</p>
             </div>
         </div>
 
-        <!-- User Management -->
-        <div class="dashboard-card">
-            <div class="card-header-admin">
-                <h3 class="card-title-admin">
-                    <i class="bi bi-people-fill"></i> User Management
-                </h3>
-            </div>
-
-            <!-- Messages -->
-            {% if messages %}
-                <div class="mt-3">
-                    {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                            <i class="bi bi-check-circle me-2"></i>{{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        <!-- User Management Card -->
+        <div class="glass-effect rounded-2xl shadow-xl mb-8">
+            <div class="p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900 flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-3">
+                            <i class="bi bi-people-fill text-white"></i>
                         </div>
-                    {% endfor %}
+                        User Management
+                    </h3>
                 </div>
-            {% endif %}
 
-            <!-- Search Box -->
-            <form method="GET" class="mb-3">
-                <div class="input-group">
-                    <input type="text" name="search" class="form-control" placeholder="Search users..." value="{{ search_query }}">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-search"></i> Search
-                    </button>
-                </div>
-            </form>
-
-            <!-- Filter Buttons -->
-            <div class="btn-group mb-4" role="group">
-                <a href="?type=all{% if search_query %}&search={{ search_query }}{% endif %}"
-                   class="btn {% if type_filter == 'all' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-                    All Users
-                </a>
-                <a href="?type=user{% if search_query %}&search={{ search_query }}{% endif %}"
-                   class="btn {% if type_filter == 'user' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-                    Customers
-                </a>
-                <a href="?type=provider{% if search_query %}&search={{ search_query }}{% endif %}"
-                   class="btn {% if type_filter == 'provider' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-                    Providers
-                </a>
-                <a href="?type=superadmin{% if search_query %}&search={{ search_query }}{% endif %}"
-                   class="btn {% if type_filter == 'superadmin' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-                    Superadmins
-                </a>
-            </div>
-
-            <!-- Users Table -->
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Username</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Type</th>
-                            <th>Joined</th>
-                            <th>Last Login</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users %}
-                        <tr>
-                            <td><strong>{{ user.username }}</strong></td>
-                            <td>{{ user.get_full_name|default:"—" }}</td>
-                            <td>{{ user.email|default:"—" }}</td>
-                            <td>
-                                {% if user.userprofile.user_type == 'provider' %}
-                                    <span class="badge-admin badge-provider">Provider</span>
-                                {% elif user.userprofile.user_type == 'superadmin' %}
-                                    <span class="badge-admin badge-pending">Superadmin</span>
-                                {% else %}
-                                    <span class="badge-admin badge-user">User</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ user.date_joined|date:"M d, Y" }}</td>
-                            <td>{{ user.last_login|date:"M d, Y"|default:"Never" }}</td>
-                            <td>
-                                {% if user.is_active %}
-                                    <span class="badge-admin badge-active">Active</span>
-                                {% else %}
-                                    <span class="badge bg-danger">Inactive</span>
-                                {% endif %}
-                            </td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    <!-- Toggle Active/Inactive -->
-                                    <form method="POST" style="display: inline;">
-                                        {% csrf_token %}
-                                        <input type="hidden" name="action" value="toggle_active">
-                                        <input type="hidden" name="user_id" value="{{ user.id }}">
-                                        {% if user.is_active %}
-                                            <button type="submit" class="btn btn-sm btn-warning" title="Deactivate User">
-                                                <i class="bi bi-x-circle"></i> Deactivate
-                                            </button>
-                                        {% else %}
-                                            <button type="submit" class="btn btn-sm btn-success" title="Activate User">
-                                                <i class="bi bi-check-circle"></i> Activate
-                                            </button>
-                                        {% endif %}
-                                    </form>
-
-                                    <!-- Reset Password Button -->
-                                    <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#resetPasswordModal{{ user.id }}" title="Reset Password">
-                                        <i class="bi bi-key"></i> Reset Password
-                                    </button>
+                <!-- Messages -->
+                {% if messages %}
+                    <div class="mb-6">
+                        {% for message in messages %}
+                            <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-lg mb-3 flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <i class="bi bi-check-circle text-green-500 text-xl mr-3"></i>
+                                    <p class="text-green-800">{{ message }}</p>
                                 </div>
+                                <button onclick="this.parentElement.parentElement.remove()" class="text-green-500 hover:text-green-700">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
 
-                                <!-- Reset Password Modal -->
-                                <div class="modal fade" id="resetPasswordModal{{ user.id }}" tabindex="-1">
-                                    <div class="modal-dialog">
-                                        <div class="modal-content">
-                                            <div class="modal-header">
-                                                <h5 class="modal-title">Reset Password for {{ user.username }}</h5>
-                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                            </div>
-                                            <form method="POST">
-                                                {% csrf_token %}
-                                                <div class="modal-body">
+                <!-- Search and Filter -->
+                <div class="mb-6 flex flex-col md:flex-row gap-4">
+                    <form method="GET" class="flex-1">
+                        <div class="relative">
+                            <input type="text" name="search" value="{{ search_query }}" placeholder="Search users..." class="w-full px-4 py-3 pl-12 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none transition-all">
+                            <i class="bi bi-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </form>
+
+                    <div class="flex gap-2 flex-wrap">
+                        <a href="?type=all{% if search_query %}&search={{ search_query }}{% endif %}"
+                           class="px-4 py-3 rounded-xl font-semibold transition-all {% if type_filter == 'all' %}bg-gradient-to-r from-purple-600 to-pink-600 text-white{% else %}bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-500{% endif %}">
+                            All Users
+                        </a>
+                        <a href="?type=user{% if search_query %}&search={{ search_query }}{% endif %}"
+                           class="px-4 py-3 rounded-xl font-semibold transition-all {% if type_filter == 'user' %}bg-gradient-to-r from-purple-600 to-pink-600 text-white{% else %}bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-500{% endif %}">
+                            Customers
+                        </a>
+                        <a href="?type=provider{% if search_query %}&search={{ search_query }}{% endif %}"
+                           class="px-4 py-3 rounded-xl font-semibold transition-all {% if type_filter == 'provider' %}bg-gradient-to-r from-purple-600 to-pink-600 text-white{% else %}bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-500{% endif %}">
+                            Providers
+                        </a>
+                        <a href="?type=superadmin{% if search_query %}&search={{ search_query }}{% endif %}"
+                           class="px-4 py-3 rounded-xl font-semibold transition-all {% if type_filter == 'superadmin' %}bg-gradient-to-r from-purple-600 to-pink-600 text-white{% else %}bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-500{% endif %}">
+                            Superadmins
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Users Table -->
+                <div class="overflow-x-auto rounded-xl border border-gray-200">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="text-left py-4 px-6 text-gray-700 font-semibold text-sm">Username</th>
+                                <th class="text-left py-4 px-6 text-gray-700 font-semibold text-sm">Name</th>
+                                <th class="text-left py-4 px-6 text-gray-700 font-semibold text-sm">Email</th>
+                                <th class="text-left py-4 px-6 text-gray-700 font-semibold text-sm">Type</th>
+                                <th class="text-left py-4 px-6 text-gray-700 font-semibold text-sm">Joined</th>
+                                <th class="text-left py-4 px-6 text-gray-700 font-semibold text-sm">Last Login</th>
+                                <th class="text-left py-4 px-6 text-gray-700 font-semibold text-sm">Status</th>
+                                <th class="text-left py-4 px-6 text-gray-700 font-semibold text-sm">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white">
+                            {% for user in users %}
+                            <tr class="border-t border-gray-100 hover:bg-purple-50 transition-colors">
+                                <td class="py-4 px-6"><span class="font-semibold text-gray-900">{{ user.username }}</span></td>
+                                <td class="py-4 px-6 text-gray-600">{{ user.get_full_name|default:"—" }}</td>
+                                <td class="py-4 px-6 text-gray-600">{{ user.email|default:"—" }}</td>
+                                <td class="py-4 px-6">
+                                    {% if user.userprofile.user_type == 'provider' %}
+                                        <span class="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold rounded-full">Provider</span>
+                                    {% elif user.userprofile.user_type == 'superadmin' %}
+                                        <span class="px-3 py-1 bg-gradient-to-r from-pink-500 to-rose-500 text-white text-xs font-semibold rounded-full">Superadmin</span>
+                                    {% else %}
+                                        <span class="px-3 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-semibold rounded-full">User</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-4 px-6 text-gray-600 text-sm">{{ user.date_joined|date:"M d, Y" }}</td>
+                                <td class="py-4 px-6 text-gray-600 text-sm">{{ user.last_login|date:"M d, Y"|default:"Never" }}</td>
+                                <td class="py-4 px-6">
+                                    {% if user.is_active %}
+                                        <span class="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-semibold rounded-full">Active</span>
+                                    {% else %}
+                                        <span class="px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded-full">Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-4 px-6">
+                                    <div class="flex gap-2">
+                                        <form method="POST" style="display: inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="action" value="toggle_active">
+                                            <input type="hidden" name="user_id" value="{{ user.id }}">
+                                            {% if user.is_active %}
+                                                <button type="submit" class="px-3 py-1.5 bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-semibold rounded-lg transition-all" title="Deactivate User">
+                                                    <i class="bi bi-x-circle"></i> Deactivate
+                                                </button>
+                                            {% else %}
+                                                <button type="submit" class="px-3 py-1.5 bg-green-500 hover:bg-green-600 text-white text-xs font-semibold rounded-lg transition-all" title="Activate User">
+                                                    <i class="bi bi-check-circle"></i> Activate
+                                                </button>
+                                            {% endif %}
+                                        </form>
+
+                                        <button type="button" onclick="openResetModal{{ user.id }}()" class="px-3 py-1.5 bg-purple-600 hover:bg-purple-700 text-white text-xs font-semibold rounded-lg transition-all" title="Reset Password">
+                                            <i class="bi bi-key"></i> Reset
+                                        </button>
+
+                                        <!-- Modal -->
+                                        <div id="resetModal{{ user.id }}" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+                                            <div class="glass-effect rounded-2xl p-8 max-w-md w-full mx-4 animate-slide-down">
+                                                <div class="flex justify-between items-center mb-6">
+                                                    <h5 class="text-xl font-bold text-gray-900">Reset Password for {{ user.username }}</h5>
+                                                    <button onclick="closeResetModal{{ user.id }}()" class="text-gray-500 hover:text-gray-700">
+                                                        <i class="bi bi-x-lg text-2xl"></i>
+                                                    </button>
+                                                </div>
+                                                <form method="POST">
+                                                    {% csrf_token %}
                                                     <input type="hidden" name="action" value="reset_password">
                                                     <input type="hidden" name="user_id" value="{{ user.id }}">
-                                                    <div class="mb-3">
-                                                        <label class="form-label">New Password</label>
-                                                        <input type="text" name="new_password" class="form-control" value="password123" required>
-                                                        <small class="text-muted">Default: password123</small>
+                                                    <div class="mb-6">
+                                                        <label class="block text-gray-700 font-semibold mb-2">New Password</label>
+                                                        <input type="text" name="new_password" value="password123" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none">
+                                                        <small class="text-gray-500">Default: password123</small>
                                                     </div>
-                                                </div>
-                                                <div class="modal-footer">
-                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                    <button type="submit" class="btn btn-primary">Reset Password</button>
-                                                </div>
-                                            </form>
+                                                    <div class="flex gap-3">
+                                                        <button type="button" onclick="closeResetModal{{ user.id }}()" class="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-700 font-semibold rounded-xl transition-all">Cancel</button>
+                                                        <button type="submit" class="flex-1 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:shadow-lg text-white font-semibold rounded-xl transition-all">Reset Password</button>
+                                                    </div>
+                                                </form>
+                                            </div>
                                         </div>
+
+                                        <script>
+                                            function openResetModal{{ user.id }}() {
+                                                document.getElementById('resetModal{{ user.id }}').classList.remove('hidden');
+                                                document.getElementById('resetModal{{ user.id }}').classList.add('flex');
+                                            }
+                                            function closeResetModal{{ user.id }}() {
+                                                document.getElementById('resetModal{{ user.id }}').classList.add('hidden');
+                                                document.getElementById('resetModal{{ user.id }}').classList.remove('flex');
+                                            }
+                                        </script>
                                     </div>
-                                </div>
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-4">No users found</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center py-12 text-gray-400">
+                                    <i class="bi bi-inbox text-4xl mb-2"></i>
+                                    <p>No users found</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

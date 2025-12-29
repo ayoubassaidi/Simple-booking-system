@@ -1,272 +1,348 @@
-{% extends "base.html" %}
+{% extends "superadmin/base_superadmin.html" %}
 {% load static %}
 
 {% block title %}Superadmin Dashboard{% endblock %}
 
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/superadmin.css' %}?v=3">
-{% endblock %}
-
 {% block content %}
-
-<!-- Superadmin Header -->
-<div class="superadmin-wrapper">
-    <div class="superadmin-header">
-        <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="superadmin-title">
-                        <i class="bi bi-shield-lock-fill"></i> Superadmin Control Panel
-                    </h1>
-                    <p class="superadmin-subtitle">Manage your booking system</p>
+<div class="min-h-screen pb-12">
+    <!-- Header -->
+    <div class="glass-effect shadow-xl mb-8">
+        <div class="max-w-7xl mx-auto px-6 py-6">
+            <!-- Top Bar -->
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-4">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
+                        <i class="bi bi-shield-lock-fill text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Superadmin Control Panel</h1>
+                        <p class="text-gray-600 mt-1">Manage and monitor your booking platform</p>
+                    </div>
                 </div>
-                <a href="{% url 'dashboard' %}" class="btn-light">
+                <a href="{% url 'dashboard' %}" class="px-6 py-3 bg-white border-2 border-gray-200 rounded-xl hover:border-purple-600 hover:text-purple-600 font-semibold transition-all duration-300 shadow-sm hover:shadow-md">
                     <i class="bi bi-house-door-fill me-2"></i>Dashboard
                 </a>
             </div>
-            <nav class="superadmin-nav">
-                <a href="{% url 'superadmin_dashboard' %}" class="active">
-                    <i class="bi bi-speedometer2 me-1"></i> Overview
+
+            <!-- Navigation Tabs -->
+            <nav class="flex space-x-8 border-b border-gray-200">
+                <a href="{% url 'superadmin_dashboard' %}" class="px-4 py-3 text-purple-700 font-semibold border-b-3 border-purple-700">
+                    <i class="bi bi-speedometer2 me-2"></i>Overview
                 </a>
-                <a href="{% url 'superadmin_users' %}">
-                    <i class="bi bi-people-fill me-1"></i> Users
+                <a href="{% url 'superadmin_users' %}" class="px-4 py-3 text-gray-600 hover:text-purple-700 font-semibold border-b-3 border-transparent hover:border-purple-700 transition-all">
+                    <i class="bi bi-people-fill me-2"></i>Users
                 </a>
-                <a href="{% url 'superadmin_services' %}">
-                    <i class="bi bi-briefcase-fill me-1"></i> Services
+                <a href="{% url 'superadmin_services' %}" class="px-4 py-3 text-gray-600 hover:text-purple-700 font-semibold border-b-3 border-transparent hover:border-purple-700 transition-all">
+                    <i class="bi bi-briefcase-fill me-2"></i>Services
                 </a>
-                <a href="{% url 'superadmin_notifications' %}">
-                    <i class="bi bi-bell-fill me-1"></i> Notifications
+                <a href="{% url 'superadmin_notifications' %}" class="px-4 py-3 text-gray-600 hover:text-purple-700 font-semibold border-b-3 border-transparent hover:border-purple-700 transition-all">
+                    <i class="bi bi-bell-fill me-2"></i>Notifications
                 </a>
             </nav>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="container mt-4 pb-5">
+    <div class="max-w-7xl mx-auto px-6">
         <!-- Statistics Cards -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="bi bi-people-fill"></i>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 animate-fade-in">
+            <!-- Card 1 - Total Users -->
+            <div class="bg-gradient-to-br from-purple-600 to-purple-800 rounded-2xl shadow-xl p-6 text-white transform hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-purple-100 text-sm font-medium mb-1">Total Users</p>
+                        <h3 class="text-4xl font-bold">{{ total_users }}</h3>
+                        <p class="text-purple-200 text-xs mt-2">
+                            <i class="bi bi-graph-up-arrow me-1"></i>Active accounts
+                        </p>
+                    </div>
+                    <div class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                        <i class="bi bi-people-fill text-3xl"></i>
+                    </div>
                 </div>
-                <div class="stat-value">{{ total_users }}</div>
-                <div class="stat-label">Total Users</div>
             </div>
 
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="bi bi-briefcase-fill"></i>
+            <!-- Card 2 - Total Services -->
+            <div class="bg-gradient-to-br from-pink-600 to-rose-600 rounded-2xl shadow-xl p-6 text-white transform hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-pink-100 text-sm font-medium mb-1">Total Services</p>
+                        <h3 class="text-4xl font-bold">{{ total_services }}</h3>
+                        <p class="text-pink-200 text-xs mt-2">
+                            <i class="bi bi-star-fill me-1"></i>Available offerings
+                        </p>
+                    </div>
+                    <div class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                        <i class="bi bi-briefcase-fill text-3xl"></i>
+                    </div>
                 </div>
-                <div class="stat-value">{{ total_services }}</div>
-                <div class="stat-label">Total Services</div>
             </div>
 
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="bi bi-calendar-check-fill"></i>
+            <!-- Card 3 - Total Bookings -->
+            <div class="bg-gradient-to-br from-blue-600 to-cyan-600 rounded-2xl shadow-xl p-6 text-white transform hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-blue-100 text-sm font-medium mb-1">Total Bookings</p>
+                        <h3 class="text-4xl font-bold">{{ total_bookings }}</h3>
+                        <p class="text-blue-200 text-xs mt-2">
+                            <i class="bi bi-calendar-check-fill me-1"></i>All time
+                        </p>
+                    </div>
+                    <div class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                        <i class="bi bi-calendar-check-fill text-3xl"></i>
+                    </div>
                 </div>
-                <div class="stat-value">{{ total_bookings }}</div>
-                <div class="stat-label">Total Bookings</div>
             </div>
 
-            <div class="stat-card">
-                <div class="stat-icon">
-                    <i class="bi bi-currency-euro"></i>
+            <!-- Card 4 - Total Revenue -->
+            <div class="bg-gradient-to-br from-green-600 to-emerald-600 rounded-2xl shadow-xl p-6 text-white transform hover:-translate-y-2 transition-all duration-300 cursor-pointer">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-green-100 text-sm font-medium mb-1">Total Revenue</p>
+                        <h3 class="text-4xl font-bold">€{{ total_revenue|floatformat:0 }}</h3>
+                        <p class="text-green-200 text-xs mt-2">
+                            <i class="bi bi-currency-euro me-1"></i>Platform earnings
+                        </p>
+                    </div>
+                    <div class="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+                        <i class="bi bi-currency-euro text-3xl"></i>
+                    </div>
                 </div>
-                <div class="stat-value">€{{ total_revenue|floatformat:0 }}</div>
-                <div class="stat-label">Total Revenue</div>
             </div>
         </div>
 
-        <!-- Quick Stats -->
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <div class="dashboard-card">
-                    <div class="card-header-admin">
-                        <h3 class="card-title-admin">
-                            <i class="bi bi-people"></i> User Statistics
-                        </h3>
+        <!-- Quick Stats Row -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 animate-fade-in" style="animation-delay: 0.1s;">
+            <!-- User Statistics -->
+            <div class="glass-effect rounded-2xl shadow-xl p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900 flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-3">
+                            <i class="bi bi-people text-white"></i>
+                        </div>
+                        User Statistics
+                    </h3>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="text-center p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-100 transform hover:scale-105 transition-transform">
+                        <h4 class="text-3xl font-bold text-purple-700">{{ total_providers }}</h4>
+                        <p class="text-gray-600 text-sm mt-1">Providers</p>
                     </div>
-                    <div class="quick-stats-grid">
-                        <div>
-                            <h4>{{ total_providers }}</h4>
-                            <p>Providers</p>
-                        </div>
-                        <div>
-                            <h4>{{ total_customers }}</h4>
-                            <p>Customers</p>
-                        </div>
-                        <div>
-                            <h4>{{ active_services }}</h4>
-                            <p>Active Services</p>
-                        </div>
+                    <div class="text-center p-4 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-xl border border-blue-100 transform hover:scale-105 transition-transform">
+                        <h4 class="text-3xl font-bold text-blue-700">{{ total_customers }}</h4>
+                        <p class="text-gray-600 text-sm mt-1">Customers</p>
+                    </div>
+                    <div class="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100 transform hover:scale-105 transition-transform">
+                        <h4 class="text-3xl font-bold text-green-700">{{ active_services }}</h4>
+                        <p class="text-gray-600 text-sm mt-1">Active</p>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-6">
-                <div class="dashboard-card">
-                    <div class="card-header-admin">
-                        <h3 class="card-title-admin">
-                            <i class="bi bi-calendar"></i> Booking Statistics
-                        </h3>
+            <!-- Booking Statistics -->
+            <div class="glass-effect rounded-2xl shadow-xl p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900 flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mr-3">
+                            <i class="bi bi-calendar text-white"></i>
+                        </div>
+                        Booking Statistics
+                    </h3>
+                </div>
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="text-center p-4 bg-gradient-to-br from-yellow-50 to-orange-50 rounded-xl border border-yellow-100 transform hover:scale-105 transition-transform">
+                        <h4 class="text-3xl font-bold text-orange-700">{{ pending_bookings }}</h4>
+                        <p class="text-gray-600 text-sm mt-1">Pending</p>
                     </div>
-                    <div class="quick-stats-grid">
-                        <div>
-                            <h4>{{ pending_bookings }}</h4>
-                            <p>Pending</p>
-                        </div>
-                        <div>
-                            <h4>{{ completed_bookings }}</h4>
-                            <p>Completed</p>
-                        </div>
-                        <div>
-                            <h4>{{ total_bookings }}</h4>
-                            <p>Total</p>
-                        </div>
+                    <div class="text-center p-4 bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl border border-green-100 transform hover:scale-105 transition-transform">
+                        <h4 class="text-3xl font-bold text-green-700">{{ completed_bookings }}</h4>
+                        <p class="text-gray-600 text-sm mt-1">Completed</p>
+                    </div>
+                    <div class="text-center p-4 bg-gradient-to-br from-purple-50 to-pink-50 rounded-xl border border-purple-100 transform hover:scale-105 transition-transform">
+                        <h4 class="text-3xl font-bold text-purple-700">{{ total_bookings }}</h4>
+                        <p class="text-gray-600 text-sm mt-1">Total</p>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Recent Users -->
-        <div class="dashboard-card">
-            <div class="card-header-admin">
-                <h3 class="card-title-admin">
-                    <i class="bi bi-person-plus"></i> Recent Users
-                </h3>
-                <a href="{% url 'superadmin_users' %}" class="btn-primary">View All</a>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Username</th>
-                            <th>Email</th>
-                            <th>Type</th>
-                            <th>Joined</th>
-                            <th>Last Login</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in recent_users %}
-                        <tr>
-                            <td><strong>{{ user.username }}</strong></td>
-                            <td>{{ user.email|default:"—" }}</td>
-                            <td>
-                                {% if user.userprofile.user_type == 'provider' %}
-                                    <span class="badge-admin badge-provider">Provider</span>
-                                {% else %}
-                                    <span class="badge-admin badge-user">User</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ user.date_joined|date:"M d, Y" }}</td>
-                            <td>{{ user.last_login|date:"M d, Y"|default:"Never" }}</td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="5" class="text-center text-muted py-4">No users found</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <div class="glass-effect rounded-2xl shadow-xl mb-8 animate-fade-in" style="animation-delay: 0.2s;">
+            <div class="p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900 flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-3">
+                            <i class="bi bi-person-plus text-white"></i>
+                        </div>
+                        Recent Users
+                    </h3>
+                    <a href="{% url 'superadmin_users' %}" class="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-semibold transform hover:scale-105">
+                        View All
+                    </a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b-2 border-gray-200">
+                                <th class="text-left py-4 px-4 text-gray-700 font-semibold text-sm">Username</th>
+                                <th class="text-left py-4 px-4 text-gray-700 font-semibold text-sm">Email</th>
+                                <th class="text-left py-4 px-4 text-gray-700 font-semibold text-sm">Type</th>
+                                <th class="text-left py-4 px-4 text-gray-700 font-semibold text-sm">Joined</th>
+                                <th class="text-left py-4 px-4 text-gray-700 font-semibold text-sm">Last Login</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in recent_users %}
+                            <tr class="border-b border-gray-100 hover:bg-purple-50 transition-colors">
+                                <td class="py-4 px-4">
+                                    <span class="font-semibold text-gray-900">{{ user.username }}</span>
+                                </td>
+                                <td class="py-4 px-4 text-gray-600">{{ user.email|default:"—" }}</td>
+                                <td class="py-4 px-4">
+                                    {% if user.userprofile.user_type == 'provider' %}
+                                        <span class="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold rounded-full">Provider</span>
+                                    {% else %}
+                                        <span class="px-3 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-semibold rounded-full">User</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-4 px-4 text-gray-600 text-sm">{{ user.date_joined|date:"M d, Y" }}</td>
+                                <td class="py-4 px-4 text-gray-600 text-sm">{{ user.last_login|date:"M d, Y"|default:"Never" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-12 text-gray-400">
+                                    <i class="bi bi-inbox text-4xl mb-2"></i>
+                                    <p>No users found</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
         <!-- Top Services -->
-        <div class="dashboard-card">
-            <div class="card-header-admin">
-                <h3 class="card-title-admin">
-                    <i class="bi bi-star-fill"></i> Top Services
-                </h3>
-                <a href="{% url 'superadmin_services' %}" class="btn-primary">View All</a>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Service</th>
-                            <th>Provider</th>
-                            <th>Category</th>
-                            <th>Price</th>
-                            <th>Bookings</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for service in top_services %}
-                        <tr>
-                            <td><strong>{{ service.name }}</strong></td>
-                            <td>{{ service.provider.username }}</td>
-                            <td>{{ service.get_category_display }}</td>
-                            <td><strong>€{{ service.price }}</strong></td>
-                            <td><strong>{{ service.booking_count }}</strong></td>
-                            <td>
-                                {% if service.is_active %}
-                                    <span class="badge-admin badge-active">Active</span>
-                                {% else %}
-                                    <span class="badge-admin badge-pending">Inactive</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="6" class="text-center text-muted py-4">No services found</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <div class="glass-effect rounded-2xl shadow-xl mb-8 animate-fade-in" style="animation-delay: 0.3s;">
+            <div class="p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900 flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-br from-pink-500 to-orange-500 rounded-xl flex items-center justify-center mr-3">
+                            <i class="bi bi-star-fill text-white"></i>
+                        </div>
+                        Top Services
+                    </h3>
+                    <a href="{% url 'superadmin_services' %}" class="px-6 py-2.5 bg-gradient-to-r from-pink-600 to-orange-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-semibold transform hover:scale-105">
+                        View All
+                    </a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b-2 border-gray-200">
+                                <th class="text-left py-4 px-4 text-gray-700 font-semibold text-sm">Service</th>
+                                <th class="text-left py-4 px-4 text-gray-700 font-semibold text-sm">Provider</th>
+                                <th class="text-left py-4 px-4 text-gray-700 font-semibold text-sm">Category</th>
+                                <th class="text-left py-4 px-4 text-gray-700 font-semibold text-sm">Price</th>
+                                <th class="text-left py-4 px-4 text-gray-700 font-semibold text-sm">Bookings</th>
+                                <th class="text-left py-4 px-4 text-gray-700 font-semibold text-sm">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for service in top_services %}
+                            <tr class="border-b border-gray-100 hover:bg-pink-50 transition-colors">
+                                <td class="py-4 px-4">
+                                    <span class="font-semibold text-gray-900">{{ service.name }}</span>
+                                </td>
+                                <td class="py-4 px-4 text-gray-600">{{ service.provider.username }}</td>
+                                <td class="py-4 px-4 text-gray-600 text-sm">{{ service.get_category_display }}</td>
+                                <td class="py-4 px-4">
+                                    <span class="font-bold text-green-700">€{{ service.price }}</span>
+                                </td>
+                                <td class="py-4 px-4">
+                                    <span class="font-bold text-purple-700">{{ service.booking_count }}</span>
+                                </td>
+                                <td class="py-4 px-4">
+                                    {% if service.is_active %}
+                                        <span class="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-semibold rounded-full">Active</span>
+                                    {% else %}
+                                        <span class="px-3 py-1 bg-gray-400 text-white text-xs font-semibold rounded-full">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center py-12 text-gray-400">
+                                    <i class="bi bi-inbox text-4xl mb-2"></i>
+                                    <p>No services found</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
         <!-- Recent Bookings -->
-        <div class="dashboard-card">
-            <div class="card-header-admin">
-                <h3 class="card-title-admin">
-                    <i class="bi bi-calendar-event"></i> Recent Bookings
-                </h3>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Service</th>
-                            <th>Customer</th>
-                            <th>Provider</th>
-                            <th>Date</th>
-                            <th>Time</th>
-                            <th>Price</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for booking in recent_bookings %}
-                        <tr>
-                            <td><strong>{{ booking.service.name }}</strong></td>
-                            <td>{{ booking.customer.username }}</td>
-                            <td>{{ booking.provider.username }}</td>
-                            <td>{{ booking.date|date:"M d, Y" }}</td>
-                            <td>{{ booking.start_time|time:"g:i A" }}</td>
-                            <td>€{{ booking.price }}</td>
-                            <td>
-                                {% if booking.status == 'completed' %}
-                                    <span class="badge-admin badge-completed">Completed</span>
-                                {% elif booking.status == 'pending' %}
-                                    <span class="badge-admin badge-pending">Pending</span>
-                                {% elif booking.status == 'confirmed' %}
-                                    <span class="badge-admin badge-active">Confirmed</span>
-                                {% else %}
-                                    <span class="badge-admin badge-user">{{ booking.status|title }}</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center text-muted py-4">No bookings found</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+        <div class="glass-effect rounded-2xl shadow-xl mb-8 animate-fade-in" style="animation-delay: 0.4s;">
+            <div class="p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-bold text-gray-900 flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center mr-3">
+                            <i class="bi bi-calendar-event text-white"></i>
+                        </div>
+                        Recent Bookings
+                    </h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead>
+                            <tr class="border-b-2 border-gray-200">
+                                <th class="text-left py-4 px-4 text-gray-700 font-semibold text-sm">Service</th>
+                                <th class="text-left py-4 px-4 text-gray-700 font-semibold text-sm">Customer</th>
+                                <th class="text-left py-4 px-4 text-gray-700 font-semibold text-sm">Provider</th>
+                                <th class="text-left py-4 px-4 text-gray-700 font-semibold text-sm">Date</th>
+                                <th class="text-left py-4 px-4 text-gray-700 font-semibold text-sm">Time</th>
+                                <th class="text-left py-4 px-4 text-gray-700 font-semibold text-sm">Price</th>
+                                <th class="text-left py-4 px-4 text-gray-700 font-semibold text-sm">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for booking in recent_bookings %}
+                            <tr class="border-b border-gray-100 hover:bg-blue-50 transition-colors">
+                                <td class="py-4 px-4">
+                                    <span class="font-semibold text-gray-900">{{ booking.service.name }}</span>
+                                </td>
+                                <td class="py-4 px-4 text-gray-600">{{ booking.customer.username }}</td>
+                                <td class="py-4 px-4 text-gray-600">{{ booking.provider.username }}</td>
+                                <td class="py-4 px-4 text-gray-600 text-sm">{{ booking.date|date:"M d, Y" }}</td>
+                                <td class="py-4 px-4 text-gray-600 text-sm">{{ booking.start_time|time:"g:i A" }}</td>
+                                <td class="py-4 px-4">
+                                    <span class="font-bold text-green-700">€{{ booking.price }}</span>
+                                </td>
+                                <td class="py-4 px-4">
+                                    {% if booking.status == 'completed' %}
+                                        <span class="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-semibold rounded-full">Completed</span>
+                                    {% elif booking.status == 'pending' %}
+                                        <span class="px-3 py-1 bg-gradient-to-r from-yellow-500 to-orange-500 text-white text-xs font-semibold rounded-full">Pending</span>
+                                    {% elif booking.status == 'confirmed' %}
+                                        <span class="px-3 py-1 bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-xs font-semibold rounded-full">Confirmed</span>
+                                    {% else %}
+                                        <span class="px-3 py-1 bg-gray-400 text-white text-xs font-semibold rounded-full">{{ booking.status|title }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center py-12 text-gray-400">
+                                    <i class="bi bi-inbox text-4xl mb-2"></i>
+                                    <p>No bookings found</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

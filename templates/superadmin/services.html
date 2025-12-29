@@ -1,131 +1,149 @@
-{% extends "superadmin/dashboard.html" %}
+{% extends "superadmin/base_superadmin.html" %}
 
 {% block title %}Service Management - Superadmin{% endblock %}
 
 {% block content %}
-<div class="superadmin-wrapper">
-    <div class="superadmin-header">
-        <div class="container">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="superadmin-title">
-                        <i class="bi bi-shield-lock-fill"></i> Superadmin Control Panel
-                    </h1>
-                    <p class="superadmin-subtitle">Manage your booking system</p>
+<div class="min-h-screen pb-12">
+    <!-- Header -->
+    <div class="glass-effect shadow-xl mb-8">
+        <div class="max-w-7xl mx-auto px-6 py-6">
+            <!-- Top Bar -->
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex items-center space-x-4">
+                    <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-pink-600 flex items-center justify-center shadow-lg">
+                        <i class="bi bi-shield-lock-fill text-white text-2xl"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Superadmin Control Panel</h1>
+                        <p class="text-gray-600 mt-1">Manage your booking system</p>
+                    </div>
                 </div>
-                <a href="{% url 'dashboard' %}" class="btn-light">
+                <a href="{% url 'dashboard' %}" class="px-6 py-3 bg-white border-2 border-gray-200 rounded-xl hover:border-purple-600 hover:text-purple-600 font-semibold transition-all duration-300 shadow-sm hover:shadow-md">
                     <i class="bi bi-house-door-fill me-2"></i>Dashboard
                 </a>
             </div>
-            <nav class="superadmin-nav">
-                <a href="{% url 'superadmin_dashboard' %}">
-                    <i class="bi bi-speedometer2 me-1"></i> Overview
+
+            <!-- Navigation Tabs -->
+            <nav class="flex space-x-8 border-b border-gray-200">
+                <a href="{% url 'superadmin_dashboard' %}" class="px-4 py-3 text-gray-600 hover:text-purple-700 font-semibold border-b-3 border-transparent hover:border-purple-700 transition-all">
+                    <i class="bi bi-speedometer2 me-2"></i>Overview
                 </a>
-                <a href="{% url 'superadmin_users' %}">
-                    <i class="bi bi-people-fill me-1"></i> Users
+                <a href="{% url 'superadmin_users' %}" class="px-4 py-3 text-gray-600 hover:text-purple-700 font-semibold border-b-3 border-transparent hover:border-purple-700 transition-all">
+                    <i class="bi bi-people-fill me-2"></i>Users
                 </a>
-                <a href="{% url 'superadmin_services' %}" class="active">
-                    <i class="bi bi-briefcase-fill me-1"></i> Services
+                <a href="{% url 'superadmin_services' %}" class="px-4 py-3 text-purple-700 font-semibold border-b-3 border-purple-700">
+                    <i class="bi bi-briefcase-fill me-2"></i>Services
                 </a>
-                <a href="{% url 'superadmin_notifications' %}">
-                    <i class="bi bi-bell-fill me-1"></i> Notifications
+                <a href="{% url 'superadmin_notifications' %}" class="px-4 py-3 text-gray-600 hover:text-purple-700 font-semibold border-b-3 border-transparent hover:border-purple-700 transition-all">
+                    <i class="bi bi-bell-fill me-2"></i>Notifications
                 </a>
             </nav>
         </div>
     </div>
 
-    <div class="container mt-4 pb-5">
-        <!-- Statistics Mini Cards -->
-        <div class="stats-grid" style="grid-template-columns: repeat(3, 1fr);">
-            <div class="stat-card">
-                <div class="stat-icon"><i class="bi bi-briefcase-fill"></i></div>
-                <div class="stat-value">{{ service_stats.total }}</div>
-                <div class="stat-label">Total Services</div>
+    <div class="max-w-7xl mx-auto px-6">
+        <!-- Statistics Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 animate-fade-in">
+            <div class="glass-effect rounded-2xl shadow-xl p-6 text-center transform hover:-translate-y-1 transition-all">
+                <i class="bi bi-briefcase-fill text-4xl text-purple-600 mb-2"></i>
+                <h4 class="text-3xl font-bold text-gray-900">{{ service_stats.total }}</h4>
+                <p class="text-gray-600 text-sm mt-1">Total Services</p>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
-                <div class="stat-value">{{ service_stats.active }}</div>
-                <div class="stat-label">Active</div>
+            <div class="glass-effect rounded-2xl shadow-xl p-6 text-center transform hover:-translate-y-1 transition-all">
+                <i class="bi bi-check-circle text-4xl text-green-600 mb-2"></i>
+                <h4 class="text-3xl font-bold text-gray-900">{{ service_stats.active }}</h4>
+                <p class="text-gray-600 text-sm mt-1">Active</p>
             </div>
-            <div class="stat-card">
-                <div class="stat-icon"><i class="bi bi-x-circle"></i></div>
-                <div class="stat-value">{{ service_stats.inactive }}</div>
-                <div class="stat-label">Inactive</div>
+            <div class="glass-effect rounded-2xl shadow-xl p-6 text-center transform hover:-translate-y-1 transition-all">
+                <i class="bi bi-x-circle text-4xl text-red-600 mb-2"></i>
+                <h4 class="text-3xl font-bold text-gray-900">{{ service_stats.inactive }}</h4>
+                <p class="text-gray-600 text-sm mt-1">Inactive</p>
             </div>
         </div>
 
-        <!-- Service Management -->
-        <div class="dashboard-card">
-            <div class="card-header-admin">
-                <h3 class="card-title-admin">
-                    <i class="bi bi-briefcase-fill"></i> Service Management
-                </h3>
-            </div>
-
-            <!-- Search Box -->
-            <form method="GET" class="mb-3">
-                <div class="input-group">
-                    <input type="text" name="search" class="form-control" placeholder="Search services..." value="{{ search_query }}">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-search"></i> Search
-                    </button>
+        <!-- Service Management Card -->
+        <div class="glass-effect rounded-2xl shadow-xl mb-8">
+            <div class="p-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-2xl font-bold text-gray-900 flex items-center">
+                        <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center mr-3">
+                            <i class="bi bi-briefcase-fill text-white"></i>
+                        </div>
+                        Service Management
+                    </h3>
                 </div>
-            </form>
 
-            <!-- Filter Buttons -->
-            <div class="btn-group mb-4" role="group">
-                <a href="?{% if search_query %}search={{ search_query }}{% endif %}"
-                   class="btn {% if status_filter == 'all' and category_filter == 'all' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-                    All Services
-                </a>
-                <a href="?status=active{% if search_query %}&search={{ search_query }}{% endif %}"
-                   class="btn {% if status_filter == 'active' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-                    Active Only
-                </a>
-                <a href="?status=inactive{% if search_query %}&search={{ search_query }}{% endif %}"
-                   class="btn {% if status_filter == 'inactive' %}btn-primary{% else %}btn-outline-secondary{% endif %}">
-                    Inactive Only
-                </a>
-            </div>
+                <!-- Search and Filter -->
+                <div class="mb-6 flex flex-col md:flex-row gap-4">
+                    <form method="GET" class="flex-1">
+                        <div class="relative">
+                            <input type="text" name="search" value="{{ search_query }}" placeholder="Search services..." class="w-full px-4 py-3 pl-12 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:outline-none transition-all">
+                            <i class="bi bi-search absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        </div>
+                    </form>
 
-            <!-- Services Table -->
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Service</th>
-                            <th>Provider</th>
-                            <th>Category</th>
-                            <th>Duration</th>
-                            <th>Price</th>
-                            <th>Created</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for service in services %}
-                        <tr>
-                            <td><strong>{{ service.name }}</strong></td>
-                            <td>{{ service.provider.username }}</td>
-                            <td><span class="badge-admin badge-provider">{{ service.get_category_display }}</span></td>
-                            <td>{{ service.duration }} min</td>
-                            <td><strong>€{{ service.price }}</strong></td>
-                            <td>{{ service.created_at|date:"M d, Y" }}</td>
-                            <td>
-                                {% if service.is_active %}
-                                    <span class="badge-admin badge-active">Active</span>
-                                {% else %}
-                                    <span class="badge bg-danger">Inactive</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% empty %}
-                        <tr>
-                            <td colspan="7" class="text-center text-muted py-4">No services found</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                    <div class="flex gap-2 flex-wrap">
+                        <a href="?{% if search_query %}search={{ search_query }}{% endif %}"
+                           class="px-4 py-3 rounded-xl font-semibold transition-all {% if status_filter == 'all' and category_filter == 'all' %}bg-gradient-to-r from-purple-600 to-pink-600 text-white{% else %}bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-500{% endif %}">
+                            All Services
+                        </a>
+                        <a href="?status=active{% if search_query %}&search={{ search_query }}{% endif %}"
+                           class="px-4 py-3 rounded-xl font-semibold transition-all {% if status_filter == 'active' %}bg-gradient-to-r from-purple-600 to-pink-600 text-white{% else %}bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-500{% endif %}">
+                            Active Only
+                        </a>
+                        <a href="?status=inactive{% if search_query %}&search={{ search_query }}{% endif %}"
+                           class="px-4 py-3 rounded-xl font-semibold transition-all {% if status_filter == 'inactive' %}bg-gradient-to-r from-purple-600 to-pink-600 text-white{% else %}bg-white border-2 border-gray-200 text-gray-700 hover:border-purple-500{% endif %}">
+                            Inactive Only
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Services Table -->
+                <div class="overflow-x-auto rounded-xl border border-gray-200">
+                    <table class="w-full">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="text-left py-4 px-6 text-gray-700 font-semibold text-sm">Service</th>
+                                <th class="text-left py-4 px-6 text-gray-700 font-semibold text-sm">Provider</th>
+                                <th class="text-left py-4 px-6 text-gray-700 font-semibold text-sm">Category</th>
+                                <th class="text-left py-4 px-6 text-gray-700 font-semibold text-sm">Duration</th>
+                                <th class="text-left py-4 px-6 text-gray-700 font-semibold text-sm">Price</th>
+                                <th class="text-left py-4 px-6 text-gray-700 font-semibold text-sm">Created</th>
+                                <th class="text-left py-4 px-6 text-gray-700 font-semibold text-sm">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white">
+                            {% for service in services %}
+                            <tr class="border-t border-gray-100 hover:bg-purple-50 transition-colors">
+                                <td class="py-4 px-6"><span class="font-semibold text-gray-900">{{ service.name }}</span></td>
+                                <td class="py-4 px-6 text-gray-600">{{ service.provider.username }}</td>
+                                <td class="py-4 px-6">
+                                    <span class="px-3 py-1 bg-gradient-to-r from-purple-500 to-pink-500 text-white text-xs font-semibold rounded-full">
+                                        {{ service.get_category_display }}
+                                    </span>
+                                </td>
+                                <td class="py-4 px-6 text-gray-600">{{ service.duration }} min</td>
+                                <td class="py-4 px-6"><span class="font-bold text-green-700">€{{ service.price }}</span></td>
+                                <td class="py-4 px-6 text-gray-600 text-sm">{{ service.created_at|date:"M d, Y" }}</td>
+                                <td class="py-4 px-6">
+                                    {% if service.is_active %}
+                                        <span class="px-3 py-1 bg-gradient-to-r from-green-500 to-emerald-500 text-white text-xs font-semibold rounded-full">Active</span>
+                                    {% else %}
+                                        <span class="px-3 py-1 bg-red-500 text-white text-xs font-semibold rounded-full">Inactive</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="7" class="text-center py-12 text-gray-400">
+                                    <i class="bi bi-inbox text-4xl mb-2"></i>
+                                    <p>No services found</p>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
