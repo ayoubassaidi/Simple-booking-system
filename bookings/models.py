@@ -3,8 +3,10 @@ from django.db import models
 from django.contrib.auth.models import User
 
 
-# Service Provider Model - Simple and Easy to Understand
-class Provider(models.Model):
+# OLD DEPRECATED PROVIDER MODEL - NOT IN USE
+# This old model is kept for historical data only (4 entries)
+# DO NOT USE THIS MODEL - Use the ProviderProfile model below instead
+class OldProvider(models.Model):
     # Service Type Choices
     SERVICE_CHOICES = [
         ('plumbing', 'Plumbing'),
@@ -40,11 +42,140 @@ class Provider(models.Model):
     # When was this provider added
     created_at = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        db_table = 'bookings_provider'  # Keep old table name
+        verbose_name = 'Old Provider (Deprecated)'
+        verbose_name_plural = 'Old Providers (Deprecated)'
+
     def __str__(self):
         return f"{self.name} - {self.get_service_type_display()}"
 
     # Helper method to get star rating display
     def get_stars(self):
+        return '⭐' * int(self.rating)
+
+
+# NEW PROVIDER MODEL - Dedicated table for service providers
+class ProviderProfile(models.Model):
+    """Dedicated provider profile table - separate from regular users"""
+
+    SERVICE_TYPE_CHOICES = [
+        ('salon_beauty', 'Salon & Beauty'),
+        ('health_wellness', 'Health & Wellness'),
+        ('education', 'Education & Tutoring'),
+        ('home_services', 'Home Services'),
+        ('fitness', 'Fitness & Sports'),
+        ('technology', 'Technology & IT'),
+        ('business', 'Business & Consulting'),
+        ('other', 'Other'),
+    ]
+
+    # Link to User account
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name='provider_profile',
+        help_text="User account for this provider"
+    )
+
+    # Business Information
+    business_name = models.CharField(
+        max_length=200,
+        blank=True,
+        null=True,
+        help_text="Business or trading name"
+    )
+    kvk_number = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        help_text="KVK (Chamber of Commerce) number"
+    )
+
+    # Service Information
+    service_type = models.CharField(
+        max_length=50,
+        choices=SERVICE_TYPE_CHOICES,
+        help_text="Primary service category"
+    )
+    bio = models.TextField(
+        help_text="About the provider and their services"
+    )
+
+    # Location
+    city = models.CharField(
+        max_length=100,
+        help_text="City where services are provided"
+    )
+    address = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Full address (optional)"
+    )
+
+    # Contact
+    phone_number = models.CharField(
+        max_length=20,
+        help_text="Contact phone number"
+    )
+    website = models.URLField(
+        blank=True,
+        null=True,
+        help_text="Website URL (optional)"
+    )
+
+    # Experience & Stats
+    years_experience = models.IntegerField(
+        default=0,
+        help_text="Years of professional experience"
+    )
+    rating = models.FloatField(
+        default=0.0,
+        help_text="Average rating (0-5)"
+    )
+    total_bookings = models.IntegerField(
+        default=0,
+        help_text="Total number of completed bookings"
+    )
+
+    # Status
+    is_verified = models.BooleanField(
+        default=False,
+        help_text="Has the provider been verified?"
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Is the provider currently accepting bookings?"
+    )
+
+    # Profile Media
+    profile_image = models.URLField(
+        blank=True,
+        null=True,
+        help_text="Profile image URL"
+    )
+
+    # Timestamps
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = 'Provider Profile'
+        verbose_name_plural = 'Provider Profiles'
+        ordering = ['-created_at']
+
+    def __str__(self):
+        name = self.business_name or self.user.get_full_name() or self.user.username
+        return f"{name} - {self.get_service_type_display()}"
+
+    @property
+    def display_name(self):
+        """Get the best display name for the provider"""
+        return self.business_name or self.user.get_full_name() or self.user.username
+
+    def get_rating_stars(self):
+        """Return star representation of rating"""
         return '⭐' * int(self.rating)
 
 

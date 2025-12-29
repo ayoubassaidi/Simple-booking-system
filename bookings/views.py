@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Q, Count
 from accounts.models import UserProfile
-from .models import Availability, Provider, Service, SearchQuery, Booking
+from .models import Availability, Service, SearchQuery, Booking, ProviderProfile
 from .forms import ServiceForm
 
 

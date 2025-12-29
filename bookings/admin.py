@@ -1,12 +1,73 @@
 from django.contrib import admin
-from .models import Provider, Availability, Service, Notification, Booking
+from .models import OldProvider, ProviderProfile, Availability, Service, Notification, Booking
 
 
-@admin.register(Provider)
-class ProviderAdmin(admin.ModelAdmin):
-    list_display = ['name', 'service_type', 'location', 'rating', 'created_at']
-    list_filter = ['service_type', 'location']
-    search_fields = ['name', 'description']
+# NOTE: OldProvider model is DEPRECATED - Use ProviderProfile instead
+# The OldProvider model is kept for historical data only (4 entries)
+# To manage providers, use the ProviderProfile model below
+# @admin.register(OldProvider)
+# class OldProviderAdmin(admin.ModelAdmin):
+#     list_display = ['name', 'service_type', 'location', 'rating', 'created_at']
+#     list_filter = ['service_type', 'location']
+#     search_fields = ['name', 'description']
+
+
+# NEW PROVIDER ADMIN - Dedicated table for service providers
+@admin.register(ProviderProfile)
+class ProviderProfileAdmin(admin.ModelAdmin):
+    list_display = ['display_name', 'user', 'service_type', 'city', 'phone_number', 'rating', 'total_bookings', 'is_verified', 'is_active', 'created_at']
+    list_filter = ['service_type', 'city', 'is_verified', 'is_active', 'created_at']
+    search_fields = ['user__username', 'user__email', 'user__first_name', 'user__last_name', 'business_name', 'phone_number', 'kvk_number']
+    date_hierarchy = 'created_at'
+    readonly_fields = ['created_at', 'updated_at']
+
+    fieldsets = (
+        ('User Account', {
+            'fields': ('user',)
+        }),
+        ('Business Information', {
+            'fields': ('business_name', 'kvk_number')
+        }),
+        ('Service Information', {
+            'fields': ('service_type', 'bio')
+        }),
+        ('Location', {
+            'fields': ('city', 'address')
+        }),
+        ('Contact', {
+            'fields': ('phone_number', 'website')
+        }),
+        ('Experience & Stats', {
+            'fields': ('years_experience', 'rating', 'total_bookings')
+        }),
+        ('Status', {
+            'fields': ('is_verified', 'is_active')
+        }),
+        ('Media', {
+            'fields': ('profile_image',)
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        }),
+    )
+
+    actions = ['verify_providers', 'activate_providers', 'deactivate_providers']
+
+    def verify_providers(self, request, queryset):
+        updated = queryset.update(is_verified=True)
+        self.message_user(request, f'{updated} provider(s) marked as verified.')
+    verify_providers.short_description = "Verify selected providers"
+
+    def activate_providers(self, request, queryset):
+        updated = queryset.update(is_active=True)
+        self.message_user(request, f'{updated} provider(s) activated.')
+    activate_providers.short_description = "Activate selected providers"
+
+    def deactivate_providers(self, request, queryset):
+        updated = queryset.update(is_active=False)
+        self.message_user(request, f'{updated} provider(s) deactivated.')
+    deactivate_providers.short_description = "Deactivate selected providers"
 
 
 @admin.register(Availability)
