@@ -1,69 +1,636 @@
 {% extends 'dashboard_base.html' %}
 {% load static %}
 
-{% block title %}My Services - Smart Booking{% endblock %}
+{% block title %}My Bookings - Provider{% endblock %}
 
 {% block page_title %}My Bookings{% endblock %}
-{% block page_subtitle %}Manage the services you offer to clients{% endblock %}
+{% block page_subtitle %}Manage customer bookings and appointments{% endblock %}
 
 {% block dashboard_content %}
 
-{% if bookings %}
-<div class="table-responsive">
-<table class="table align-middle">
-    <thead>
-        <tr>
-            <th>Customer</th>
-            <th>Service</th>
-            <th>Date & Time</th>
-            <th>Status</th>
-            <th>Price</th>
-            <th>Action</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for booking in bookings %}
-        <tr>
-            <td>
-                <div class="d-flex align-items-center gap-2">
-                    <img src="https://ui-avatars.com/api/?name={{ booking.customer.username }}"
-                         class="rounded-circle"
-                         width="40" height="40">
-                    <strong>{{ booking.customer.username }}</strong>
+<!-- Modern Tabs -->
+<div class="booking-tabs-modern">
+    <button class="tab-btn-modern active" onclick="switchTab('pending')" id="tab-pending">
+        <i class="bi bi-clock-history"></i>
+        <span>Pending</span>
+        <span class="tab-badge bg-warning">{{ pending_bookings.count }}</span>
+    </button>
+    <button class="tab-btn-modern" onclick="switchTab('confirmed')" id="tab-confirmed">
+        <i class="bi bi-calendar-check"></i>
+        <span>Confirmed</span>
+        <span class="tab-badge bg-success">{{ confirmed_bookings.count }}</span>
+    </button>
+    <button class="tab-btn-modern" onclick="switchTab('completed')" id="tab-completed">
+        <i class="bi bi-check-circle-fill"></i>
+        <span>Completed</span>
+        <span class="tab-badge bg-secondary">{{ completed_bookings.count }}</span>
+    </button>
+    <button class="tab-btn-modern" onclick="switchTab('all')" id="tab-all">
+        <i class="bi bi-list-ul"></i>
+        <span>All Bookings</span>
+        <span class="tab-badge bg-primary">{{ bookings.count }}</span>
+    </button>
+</div>
+
+<!-- Pending Bookings -->
+<div class="tab-content-modern active" id="content-pending">
+    {% if pending_bookings %}
+    <div class="bookings-grid-modern">
+        {% for booking in pending_bookings %}
+        <div class="booking-card-new pending-card">
+            <div class="booking-card-header">
+                <div class="customer-info">
+                    <img src="https://ui-avatars.com/api/?name={{ booking.customer.username|urlencode }}&background=667eea&color=fff&size=48"
+                         class="customer-avatar" alt="{{ booking.customer.username }}">
+                    <div>
+                        <h4>{{ booking.customer.get_full_name|default:booking.customer.username }}</h4>
+                        <p class="customer-email">{{ booking.customer.email|default:"No email" }}</p>
+                    </div>
                 </div>
-            </td>
+                <span class="status-badge status-pending">
+                    <i class="bi bi-clock"></i> Pending
+                </span>
+            </div>
 
-            <td>{{ booking.service.name }}</td>
+            <div class="booking-card-body">
+                <div class="booking-service-name">
+                    <i class="bi bi-briefcase-fill"></i>
+                    {{ booking.service.name }}
+                </div>
 
-            <td>
-                {{ booking.date }}<br>
-                <small class="text-muted">
-                    {{ booking.start_time }} – {{ booking.end_time }}
-                </small>
-            </td>
+                <div class="booking-details-grid">
+                    <div class="detail-item">
+                        <i class="bi bi-calendar3"></i>
+                        <span>{{ booking.date|date:"l, M d, Y" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="bi bi-clock-fill"></i>
+                        <span>{{ booking.start_time|time:"h:i A" }} - {{ booking.end_time|time:"h:i A" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="bi bi-cash-stack"></i>
+                        <span class="price-highlight">€{{ booking.price }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="bi bi-hourglass-split"></i>
+                        <span>{{ booking.service.get_duration_display }}</span>
+                    </div>
+                </div>
+            </div>
 
-            <td>
-                <span class="badge 
-                    {% if booking.status == 'confirmed' %}bg-success
-                    {% elif booking.status == 'pending' %}bg-warning
-                    {% elif booking.status == 'cancelled' %}bg-danger
-                    {% else %}bg-secondary{% endif %}
-                ">
+            <div class="booking-card-actions">
+                <form method="POST" style="flex: 1;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="accept">
+                    <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                    <button type="submit" class="btn-action btn-accept">
+                        <i class="bi bi-check-circle-fill"></i> Accept
+                    </button>
+                </form>
+                <form method="POST" style="flex: 1;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="reject">
+                    <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                    <button type="submit" class="btn-action btn-reject">
+                        <i class="bi bi-x-circle-fill"></i> Reject
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state-modern">
+        <i class="bi bi-inbox"></i>
+        <h3>No Pending Bookings</h3>
+        <p>All caught up! You don't have any bookings waiting for your response.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Confirmed Bookings -->
+<div class="tab-content-modern" id="content-confirmed">
+    {% if confirmed_bookings %}
+    <div class="bookings-grid-modern">
+        {% for booking in confirmed_bookings %}
+        <div class="booking-card-new confirmed-card">
+            <div class="booking-card-header">
+                <div class="customer-info">
+                    <img src="https://ui-avatars.com/api/?name={{ booking.customer.username|urlencode }}&background=10b981&color=fff&size=48"
+                         class="customer-avatar" alt="{{ booking.customer.username }}">
+                    <div>
+                        <h4>{{ booking.customer.get_full_name|default:booking.customer.username }}</h4>
+                        <p class="customer-email">{{ booking.customer.email|default:"No email" }}</p>
+                    </div>
+                </div>
+                <span class="status-badge status-confirmed">
+                    <i class="bi bi-check-circle"></i> Confirmed
+                </span>
+            </div>
+
+            <div class="booking-card-body">
+                <div class="booking-service-name">
+                    <i class="bi bi-briefcase-fill"></i>
+                    {{ booking.service.name }}
+                </div>
+
+                <div class="booking-details-grid">
+                    <div class="detail-item">
+                        <i class="bi bi-calendar3"></i>
+                        <span>{{ booking.date|date:"l, M d, Y" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="bi bi-clock-fill"></i>
+                        <span>{{ booking.start_time|time:"h:i A" }} - {{ booking.end_time|time:"h:i A" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="bi bi-cash-stack"></i>
+                        <span class="price-highlight">€{{ booking.price }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="bi bi-hourglass-split"></i>
+                        <span>{{ booking.service.get_duration_display }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="booking-card-actions">
+                <form method="POST" style="width: 100%;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="complete">
+                    <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                    <button type="submit" class="btn-action btn-complete">
+                        <i class="bi bi-check-circle-fill"></i> Mark as Completed
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state-modern">
+        <i class="bi bi-calendar-check"></i>
+        <h3>No Confirmed Bookings</h3>
+        <p>You don't have any confirmed bookings at the moment.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Completed Bookings -->
+<div class="tab-content-modern" id="content-completed">
+    {% if completed_bookings %}
+    <div class="bookings-grid-modern">
+        {% for booking in completed_bookings %}
+        <div class="booking-card-new completed-card">
+            <div class="booking-card-header">
+                <div class="customer-info">
+                    <img src="https://ui-avatars.com/api/?name={{ booking.customer.username|urlencode }}&background=6b7280&color=fff&size=48"
+                         class="customer-avatar" alt="{{ booking.customer.username }}">
+                    <div>
+                        <h4>{{ booking.customer.get_full_name|default:booking.customer.username }}</h4>
+                        <p class="customer-email">{{ booking.customer.email|default:"No email" }}</p>
+                    </div>
+                </div>
+                <span class="status-badge status-completed">
+                    <i class="bi bi-check-circle-fill"></i> Completed
+                </span>
+            </div>
+
+            <div class="booking-card-body">
+                <div class="booking-service-name">
+                    <i class="bi bi-briefcase-fill"></i>
+                    {{ booking.service.name }}
+                </div>
+
+                <div class="booking-details-grid">
+                    <div class="detail-item">
+                        <i class="bi bi-calendar3"></i>
+                        <span>{{ booking.date|date:"l, M d, Y" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="bi bi-clock-fill"></i>
+                        <span>{{ booking.start_time|time:"h:i A" }} - {{ booking.end_time|time:"h:i A" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="bi bi-cash-stack"></i>
+                        <span class="price-highlight">€{{ booking.price }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="bi bi-hourglass-split"></i>
+                        <span>{{ booking.service.get_duration_display }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="empty-state-modern">
+        <i class="bi bi-check-circle-fill"></i>
+        <h3>No Completed Bookings</h3>
+        <p>You haven't completed any bookings yet.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- All Bookings -->
+<div class="tab-content-modern" id="content-all">
+    {% if bookings %}
+    <div class="bookings-grid-modern">
+        {% for booking in bookings %}
+        <div class="booking-card-new {% if booking.status == 'pending' %}pending-card{% elif booking.status == 'confirmed' %}confirmed-card{% elif booking.status == 'completed' %}completed-card{% else %}cancelled-card{% endif %}">
+            <div class="booking-card-header">
+                <div class="customer-info">
+                    <img src="https://ui-avatars.com/api/?name={{ booking.customer.username|urlencode }}&background=667eea&color=fff&size=48"
+                         class="customer-avatar" alt="{{ booking.customer.username }}">
+                    <div>
+                        <h4>{{ booking.customer.get_full_name|default:booking.customer.username }}</h4>
+                        <p class="customer-email">{{ booking.customer.email|default:"No email" }}</p>
+                    </div>
+                </div>
+                <span class="status-badge status-{{ booking.status }}">
+                    <i class="bi bi-{% if booking.status == 'pending' %}clock{% elif booking.status == 'confirmed' %}check-circle{% elif booking.status == 'completed' %}check-circle-fill{% else %}x-circle{% endif %}"></i>
                     {{ booking.status|capfirst }}
                 </span>
-            </td>
+            </div>
 
-            <td>€{{ booking.price }}</td>
+            <div class="booking-card-body">
+                <div class="booking-service-name">
+                    <i class="bi bi-briefcase-fill"></i>
+                    {{ booking.service.name }}
+                </div>
 
-            <td>
-                <a href="#" class="btn btn-sm btn-outline-primary">View</a>
-            </td>
-        </tr>
+                <div class="booking-details-grid">
+                    <div class="detail-item">
+                        <i class="bi bi-calendar3"></i>
+                        <span>{{ booking.date|date:"l, M d, Y" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="bi bi-clock-fill"></i>
+                        <span>{{ booking.start_time|time:"h:i A" }} - {{ booking.end_time|time:"h:i A" }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="bi bi-cash-stack"></i>
+                        <span class="price-highlight">€{{ booking.price }}</span>
+                    </div>
+                    <div class="detail-item">
+                        <i class="bi bi-hourglass-split"></i>
+                        <span>{{ booking.service.get_duration_display }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
         {% endfor %}
-    </tbody>
-</table>
+    </div>
+    {% else %}
+    <div class="empty-state-modern">
+        <i class="bi bi-inbox"></i>
+        <h3>No Bookings Yet</h3>
+        <p>You don't have any bookings yet.</p>
+    </div>
+    {% endif %}
 </div>
-{% else %}
-<p class="text-muted">No bookings yet.</p>
-{% endif %}
+
+<style>
+/* Modern Tabs */
+.booking-tabs-modern {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 30px;
+    background: #f8fafc;
+    padding: 8px;
+    border-radius: 12px;
+    flex-wrap: wrap;
+}
+
+.tab-btn-modern {
+    flex: 1;
+    min-width: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px 20px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.tab-btn-modern:hover {
+    background: white;
+    color: #334155;
+}
+
+.tab-btn-modern.active {
+    background: white;
+    color: #667eea;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.15);
+}
+
+.tab-btn-modern i {
+    font-size: 18px;
+}
+
+.tab-badge {
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+}
+
+/* Tab Content */
+.tab-content-modern {
+    display: none;
+}
+
+.tab-content-modern.active {
+    display: block;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Bookings Grid */
+.bookings-grid-modern {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 20px;
+}
+
+/* Booking Card */
+.booking-card-new {
+    background: white;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s;
+    border-left: 4px solid #e2e8f0;
+}
+
+.booking-card-new:hover {
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    transform: translateY(-4px);
+}
+
+.pending-card {
+    border-left-color: #f59e0b;
+}
+
+.confirmed-card {
+    border-left-color: #10b981;
+}
+
+.completed-card {
+    border-left-color: #6b7280;
+}
+
+.cancelled-card {
+    border-left-color: #ef4444;
+}
+
+/* Card Header */
+.booking-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.customer-info {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.customer-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 3px solid white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.customer-info h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #1e293b;
+}
+
+.customer-email {
+    margin: 2px 0 0 0;
+    font-size: 13px;
+    color: #64748b;
+}
+
+/* Status Badges */
+.status-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+}
+
+.status-pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-confirmed {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.status-completed {
+    background: #e5e7eb;
+    color: #374151;
+}
+
+.status-cancelled {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* Card Body */
+.booking-card-body {
+    padding: 20px;
+}
+
+.booking-service-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.booking-service-name i {
+    color: #667eea;
+    font-size: 20px;
+}
+
+.booking-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #475569;
+}
+
+.detail-item i {
+    color: #667eea;
+    font-size: 16px;
+}
+
+.price-highlight {
+    font-weight: 700;
+    color: #10b981;
+    font-size: 16px;
+}
+
+/* Card Actions */
+.booking-card-actions {
+    display: flex;
+    gap: 10px;
+    padding: 16px 20px;
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+}
+
+.btn-action {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.btn-accept {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+}
+
+.btn-accept:hover {
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
+
+.btn-reject {
+    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    color: white;
+}
+
+.btn-reject:hover {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.btn-complete {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.btn-complete:hover {
+    background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* Empty State */
+.empty-state-modern {
+    text-align: center;
+    padding: 80px 20px;
+    background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+    border-radius: 16px;
+}
+
+.empty-state-modern i {
+    font-size: 80px;
+    color: #cbd5e0;
+    margin-bottom: 20px;
+    display: block;
+}
+
+.empty-state-modern h3 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 10px;
+}
+
+.empty-state-modern p {
+    font-size: 16px;
+    color: #64748b;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .bookings-grid-modern {
+        grid-template-columns: 1fr;
+    }
+
+    .booking-tabs-modern {
+        flex-direction: column;
+    }
+
+    .tab-btn-modern {
+        width: 100%;
+    }
+
+    .booking-details-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+function switchTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content-modern').forEach(content => {
+        content.classList.remove('active');
+    });
+
+    // Remove active class from all tabs
+    document.querySelectorAll('.tab-btn-modern').forEach(btn => {
+        btn.classList.remove('active');
+    });
+
+    // Show selected tab content
+    document.getElementById('content-' + tabName).classList.add('active');
+
+    // Add active class to selected tab
+    document.getElementById('tab-' + tabName).classList.add('active');
+}
+</script>
+
 {% endblock %}

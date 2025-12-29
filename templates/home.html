@@ -52,7 +52,7 @@ body {
 
         <div class="categories-grid">
             {% for category in popular_categories %}
-            <a href="{% url 'search_services' %}?category={{ category.value }}" class="category-card">
+            <a href="{% url 'browse_providers' %}?category={{ category.value }}" class="category-card">
                 <div class="category-icon">
                     {% if category.value == 'home_services' %}
                         <i class="bi bi-house"></i>

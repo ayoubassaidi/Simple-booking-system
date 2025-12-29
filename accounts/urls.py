@@ -11,7 +11,7 @@ urlpatterns = [
 
     # Login & Logout
     path('login/', views.custom_login, name='login'),
-    path('logout/', auth_views.LogoutView.as_view(next_page='home'), name='logout'),
+    path('logout/', views.custom_logout, name='logout'),
 
     # Dashboard (protected by login_required)
     path('dashboard/', views.dashboard, name='dashboard'),

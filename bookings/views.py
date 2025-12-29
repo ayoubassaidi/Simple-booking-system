@@ -317,9 +317,19 @@ def search_services(request):
 # VIEW AVAILABILITY
 # ==========================================
 
+@login_required
 def view_availability(request, service_id):
-    """View availability calendar for a specific service"""
+    """View availability calendar for a specific service - Only customers can view"""
     from datetime import datetime, timedelta
+
+    # Prevent providers from viewing availability to book
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        if user_profile.user_type == 'provider':
+            messages.error(request, "Service providers cannot book services. This page is only for customers.")
+            return redirect("browse_providers")
+    except UserProfile.DoesNotExist:
+        pass  # Allow users without profiles to view
 
     service = get_object_or_404(Service, id=service_id, is_active=True)
 
@@ -399,6 +409,16 @@ def view_availability(request, service_id):
 
 @login_required
 def confirm_booking(request, service_id):
+    """Confirm a booking - Only customers can book, providers cannot"""
+    # Prevent providers from booking services
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        if user_profile.user_type == 'provider':
+            messages.error(request, "Service providers cannot book services. Only customers can make bookings.")
+            return redirect("browse_providers")
+    except UserProfile.DoesNotExist:
+        pass  # Allow users without profiles to book
+
     if request.method != "POST":
         messages.error(request, "Invalid request method.")
         return redirect("browse_providers")
@@ -445,7 +465,7 @@ def confirm_booking(request, service_id):
             start_time=availability.start_time,
             end_time=availability.end_time,
             price=service.price,
-            status="confirmed"
+            status="pending"
         )
 
         # Mark slot unavailable
@@ -453,7 +473,7 @@ def confirm_booking(request, service_id):
         availability.save()
 
         messages.success(
-            request, f"Booking confirmed! Your appointment is on {availability.date} at {availability.start_time}.")
+            request, f"Booking request sent! Waiting for provider confirmation for {availability.date} at {availability.start_time}.")
         return redirect("my_bookings")
 
     except Exception as e:
@@ -473,12 +493,51 @@ def provider_bookings(request):
     if profile.user_type != "provider":
         return redirect("dashboard")
 
+    # Handle booking actions (accept, reject, complete)
+    if request.method == "POST":
+        action = request.POST.get("action")
+        booking_id = request.POST.get("booking_id")
+
+        try:
+            booking = Booking.objects.get(id=booking_id, provider=request.user)
+
+            if action == "accept":
+                booking.status = "confirmed"
+                booking.save()
+                messages.success(request, f"Booking accepted for {booking.customer.username}")
+
+            elif action == "reject":
+                booking.status = "cancelled"
+                booking.save()
+                # Make availability slot available again
+                booking.availability.is_available = True
+                booking.availability.save()
+                messages.success(request, f"Booking rejected for {booking.customer.username}")
+
+            elif action == "complete":
+                booking.status = "completed"
+                booking.save()
+                messages.success(request, f"Booking marked as completed")
+
+        except Booking.DoesNotExist:
+            messages.error(request, "Booking not found")
+
+        return redirect("provider_bookings")
+
+    # Get bookings categorized by status
     bookings = Booking.objects.filter(
         provider=request.user
     ).select_related("service", "customer").order_by("-date", "-start_time")
 
+    pending_bookings = bookings.filter(status='pending')
+    confirmed_bookings = bookings.filter(status='confirmed')
+    completed_bookings = bookings.filter(status='completed')
+
     return render(request, "bookings/provider_bookings.html", {
-        "bookings": bookings
+        "bookings": bookings,
+        "pending_bookings": pending_bookings,
+        "confirmed_bookings": confirmed_bookings,
+        "completed_bookings": completed_bookings,
     })
 
 

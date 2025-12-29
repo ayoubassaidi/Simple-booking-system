@@ -86,8 +86,130 @@
     </div>
 </div>
 
-<!-- Upcoming Bookings -->
+<!-- Pending Bookings - Need Accept/Reject -->
 <div class="main-section">
+    <h4 class="section-title" style="color: #f59e0b;">
+        <i class="bi bi-hourglass-split"></i>
+        Pending Bookings - Need Your Response
+    </h4>
+
+    {% if pending_bookings_list %}
+        <div class="bookings-list">
+            {% for booking in pending_bookings_list %}
+            <div class="booking-card" style="border-left: 4px solid #f59e0b;">
+                <div class="booking-header">
+                    <div class="booking-service">
+                        <i class="bi bi-briefcase-fill"></i>
+                        <strong>{{ booking.service.name }}</strong>
+                    </div>
+                    <span class="badge bg-warning text-dark">Pending</span>
+                </div>
+                <div class="booking-details">
+                    <div class="booking-detail-item">
+                        <i class="bi bi-person"></i>
+                        <span>{{ booking.customer.get_full_name|default:booking.customer.username }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                        <i class="bi bi-calendar3"></i>
+                        <span>{{ booking.date|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                        <i class="bi bi-clock"></i>
+                        <span>{{ booking.start_time|time:"h:i A" }} - {{ booking.end_time|time:"h:i A" }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                        <i class="bi bi-cash"></i>
+                        <strong class="text-success">€{{ booking.price }}</strong>
+                    </div>
+                </div>
+                <div class="booking-actions mt-3">
+                    <form method="POST" action="{% url 'dashboard' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="accept">
+                        <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                        <button type="submit" class="btn btn-sm btn-success">
+                            <i class="bi bi-check-circle"></i> Accept
+                        </button>
+                    </form>
+                    <form method="POST" action="{% url 'dashboard' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="reject">
+                        <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            <i class="bi bi-x-circle"></i> Reject
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state-small">
+            <i class="bi bi-check-circle" style="color: #10b981;"></i>
+            <p>No pending bookings - All caught up!</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Confirmed Bookings - Need to Complete -->
+<div class="main-section mt-4">
+    <h4 class="section-title" style="color: #3b82f6;">
+        <i class="bi bi-clipboard-check"></i>
+        Confirmed Bookings - Ready to Complete
+    </h4>
+
+    {% if confirmed_bookings %}
+        <div class="bookings-list">
+            {% for booking in confirmed_bookings %}
+            <div class="booking-card" style="border-left: 4px solid #10b981;">
+                <div class="booking-header">
+                    <div class="booking-service">
+                        <i class="bi bi-briefcase-fill"></i>
+                        <strong>{{ booking.service.name }}</strong>
+                    </div>
+                    <span class="badge bg-success">Confirmed</span>
+                </div>
+                <div class="booking-details">
+                    <div class="booking-detail-item">
+                        <i class="bi bi-person"></i>
+                        <span>{{ booking.customer.get_full_name|default:booking.customer.username }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                        <i class="bi bi-calendar3"></i>
+                        <span>{{ booking.date|date:"M d, Y" }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                        <i class="bi bi-clock"></i>
+                        <span>{{ booking.start_time|time:"h:i A" }} - {{ booking.end_time|time:"h:i A" }}</span>
+                    </div>
+                    <div class="booking-detail-item">
+                        <i class="bi bi-cash"></i>
+                        <strong class="text-success">€{{ booking.price }}</strong>
+                    </div>
+                </div>
+                <div class="booking-actions mt-3">
+                    <form method="POST" action="{% url 'dashboard' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="complete">
+                        <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="bi bi-check-circle-fill"></i> Mark as Completed
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state-small">
+            <i class="bi bi-calendar-check" style="color: #3b82f6;"></i>
+            <p>No confirmed bookings to complete</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Upcoming Bookings -->
+<div class="main-section mt-4">
     <h4 class="section-title">
         <i class="bi bi-calendar-event"></i>
         Upcoming Bookings
@@ -168,6 +290,37 @@
                         <i class="bi bi-cash"></i>
                         <strong>€{{ booking.price }}</strong>
                     </div>
+                </div>
+
+                <!-- Action Buttons for Provider -->
+                <div class="booking-actions mt-3">
+                    {% if booking.status == 'pending' %}
+                        <form method="POST" action="{% url 'dashboard' %}" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="accept">
+                            <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                            <button type="submit" class="btn btn-sm btn-success">
+                                <i class="bi bi-check-circle"></i> Accept
+                            </button>
+                        </form>
+                        <form method="POST" action="{% url 'dashboard' %}" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="reject">
+                            <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                            <button type="submit" class="btn btn-sm btn-danger">
+                                <i class="bi bi-x-circle"></i> Reject
+                            </button>
+                        </form>
+                    {% elif booking.status == 'confirmed' %}
+                        <form method="POST" action="{% url 'dashboard' %}" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="complete">
+                            <input type="hidden" name="booking_id" value="{{ booking.id }}">
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="bi bi-check-circle-fill"></i> Mark Complete
+                            </button>
+                        </form>
+                    {% endif %}
                 </div>
             </div>
             {% endfor %}

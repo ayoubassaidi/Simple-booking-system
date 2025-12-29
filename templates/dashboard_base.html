@@ -74,12 +74,14 @@
                 </a>
             </li>
             {% endif %}
+            {% if user.userprofile.user_type == 'user' %}
             <li>
                 <a href="{% url 'browse_providers' %}">
                     <i class="bi bi-search"></i>
                     <span>Browse Services</span>
                 </a>
             </li>
+            {% endif %}
             {% if user.userprofile.user_type == 'provider' %}
             <li>
                 <a href="{% url 'provider_bookings' %}">

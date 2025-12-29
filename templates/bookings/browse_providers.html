@@ -39,6 +39,17 @@
         </div>
     </header>
 
+    <!-- Provider Alert (if logged in as provider) -->
+    {% if user.is_authenticated and user.userprofile.user_type == 'provider' %}
+    <div class="container mt-3">
+        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Provider Account:</strong> You are logged in as a service provider. Providers cannot book services - only customers can make bookings.
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Search Hero Section -->
     <section class="search-hero">
         <div class="container">
@@ -239,6 +250,20 @@
                 window.location.href = url;
             });
         }
+
+        // Prevent providers from clicking "View Availability" - Show alert
+        {% if user.is_authenticated and user.userprofile.user_type == 'provider' %}
+        document.addEventListener('DOMContentLoaded', function() {
+            const bookButtons = document.querySelectorAll('.btn-book-modern');
+            bookButtons.forEach(function(button) {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    alert('⚠️ Provider Account\n\nYou are logged in as a service provider. Providers cannot book services.\n\nOnly customer accounts can make bookings.');
+                    return false;
+                });
+            });
+        });
+        {% endif %}
     </script>
 </body>
 </html>

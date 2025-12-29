@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from django.contrib.auth import login, authenticate
+from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Count, Sum, Q
@@ -42,6 +42,29 @@ def home(request):
     }
 
     return render(request, 'home.html', context)
+
+
+def custom_logout(request):
+    """Custom logout view that handles both GET and POST requests"""
+    # Logout the user (clears session)
+    logout(request)
+
+    # Create response with redirect
+    response = redirect('home')
+
+    # Clear all cookies
+    if hasattr(request, 'COOKIES'):
+        for cookie in request.COOKIES:
+            response.delete_cookie(cookie)
+
+    # Clear session cookie specifically
+    response.delete_cookie('sessionid')
+    response.delete_cookie('csrftoken')
+
+    # Add success message
+    messages.success(request, 'You have been logged out successfully.')
+
+    return response
 
 
 def custom_login(request):
@@ -179,6 +202,37 @@ def dashboard(request):
         user_type = "User"
         is_provider = False
 
+    # Handle booking actions (accept, reject, complete) from dashboard
+    if request.method == "POST" and is_provider:
+        action = request.POST.get("action")
+        booking_id = request.POST.get("booking_id")
+
+        try:
+            booking = Booking.objects.get(id=booking_id, provider=request.user)
+
+            if action == "accept":
+                booking.status = "confirmed"
+                booking.save()
+                messages.success(request, f"Booking accepted for {booking.customer.username}")
+
+            elif action == "reject":
+                booking.status = "cancelled"
+                booking.save()
+                # Make availability slot available again
+                booking.availability.is_available = True
+                booking.availability.save()
+                messages.success(request, f"Booking rejected for {booking.customer.username}")
+
+            elif action == "complete":
+                booking.status = "completed"
+                booking.save()
+                messages.success(request, f"Booking marked as completed")
+
+        except Booking.DoesNotExist:
+            messages.error(request, "Booking not found")
+
+        return redirect("dashboard")
+
     # Initialize context
     context = {
         'username': request.user.username,
@@ -203,10 +257,12 @@ def dashboard(request):
             status='completed'
         ).aggregate(total=Sum('price'))['total'] or 0
 
-        # Pending bookings
-        pending_bookings = provider_bookings.filter(status='pending').count()
+        # Pending bookings (for sections - query sets)
+        pending_bookings_list = provider_bookings.filter(status='pending').order_by('date', 'start_time')
+        confirmed_bookings_list = provider_bookings.filter(status='confirmed').order_by('date', 'start_time')
 
-        # Completed bookings
+        # Counts for stats
+        pending_bookings = provider_bookings.filter(status='pending').count()
         completed_bookings = provider_bookings.filter(status='completed').count()
 
         # Upcoming bookings (confirmed or pending, date in future)
@@ -241,6 +297,8 @@ def dashboard(request):
             'total_bookings': total_bookings,
             'total_revenue': total_revenue,
             'pending_bookings': pending_bookings,
+            'pending_bookings_list': pending_bookings_list,
+            'confirmed_bookings': confirmed_bookings_list,
             'completed_bookings': completed_bookings,
             'upcoming_bookings': upcoming_bookings,
             'recent_bookings': recent_bookings,
@@ -430,6 +488,14 @@ def superadmin_dashboard(request):
     completed_bookings = Booking.objects.filter(status='completed').count()
     total_revenue = Booking.objects.filter(status='completed').aggregate(total=Sum('price'))['total'] or 0
 
+    # Calculate total hours booked across all providers
+    total_hours = 0
+    for booking in Booking.objects.filter(Q(status='completed') | Q(status='confirmed')):
+        start_datetime = datetime.combine(booking.date, booking.start_time)
+        end_datetime = datetime.combine(booking.date, booking.end_time)
+        duration = (end_datetime - start_datetime).total_seconds() / 3600
+        total_hours += duration
+
     # Monthly revenue (last 6 months)
     monthly_revenue = []
     for i in range(5, -1, -1):
@@ -468,6 +534,7 @@ def superadmin_dashboard(request):
         'pending_bookings': pending_bookings,
         'completed_bookings': completed_bookings,
         'total_revenue': total_revenue,
+        'total_hours': round(total_hours, 1),
         'monthly_revenue': monthly_revenue,
         'recent_users': recent_users,
         'top_services': top_services,
