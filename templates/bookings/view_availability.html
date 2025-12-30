@@ -73,6 +73,7 @@
             <button type="button"
                     class="time-slot {% if slot.is_available %}available{% else %}booked{% endif %}"
                     data-slot-id="{{ slot.id }}"
+                    data-time="{{ slot.time }}"
                     data-display="{{ slot.display_time }}"
                     {% if not slot.is_available %}disabled{% endif %}>
                 {{ slot.display_time }}

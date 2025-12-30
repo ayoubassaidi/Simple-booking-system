@@ -313,7 +313,8 @@ def view_availability(request, service_id):
 
     # Prevent providers from viewing availability to book
     if ProviderProfile.is_provider(request.user):
-        messages.error(request, "Service providers cannot book services. This page is only for customers.")
+        messages.error(
+            request, "Service providers cannot book services. This page is only for customers.")
         return redirect("browse_providers")
 
     service = get_object_or_404(Service, id=service_id, is_active=True)
@@ -397,7 +398,8 @@ def confirm_booking(request, service_id):
     """Confirm a booking - Only customers can book, providers cannot"""
     # Prevent providers from booking services
     if ProviderProfile.is_provider(request.user):
-        messages.error(request, "Service providers cannot book services. Only customers can make bookings.")
+        messages.error(
+            request, "Service providers cannot book services. Only customers can make bookings.")
         return redirect("browse_providers")
 
     if request.method != "POST":
@@ -485,7 +487,8 @@ def provider_bookings(request):
             if action == "accept":
                 booking.status = "confirmed"
                 booking.save()
-                messages.success(request, f"Booking accepted for {booking.customer.username}")
+                messages.success(
+                    request, f"Booking accepted for {booking.customer.username}")
 
             elif action == "reject":
                 booking.status = "cancelled"
@@ -493,7 +496,8 @@ def provider_bookings(request):
                 # Make availability slot available again
                 booking.availability.is_available = True
                 booking.availability.save()
-                messages.success(request, f"Booking rejected for {booking.customer.username}")
+                messages.success(
+                    request, f"Booking rejected for {booking.customer.username}")
 
             elif action == "complete":
                 booking.status = "completed"
@@ -514,7 +518,7 @@ def provider_bookings(request):
     confirmed_bookings = bookings.filter(status='confirmed')
     completed_bookings = bookings.filter(status='completed')
 
-    return render(request, "bookings/provider_bookings.html", {
+    return render(request, "bookings/my_bookings_provider.html", {
         "bookings": bookings,
         "pending_bookings": pending_bookings,
         "confirmed_bookings": confirmed_bookings,
@@ -532,7 +536,7 @@ def my_bookings(request):
         customer=request.user
     ).select_related("service", "provider").order_by("-date", "-start_time")
 
-    return render(request, "bookings/my_bookings.html", {
+    return render(request, "bookings/my_bookings_user.html", {
         "bookings": bookings
     })
 

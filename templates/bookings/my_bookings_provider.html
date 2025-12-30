@@ -95,6 +95,22 @@
                         <i class="bi bi-x-circle-fill"></i> Reject
                     </button>
                 </form>
+                <button
+                    type="button"
+                    class="btn-action"
+                    data-bs-toggle="modal"
+                    data-bs-target="#userModal"
+                    data-username="{{ booking.customer.username|escapejs }}"
+                    data-email="{{ booking.customer.email|escapejs }}"
+                    data-first-name="{{ booking.customer.first_name|default:'N/A'|escapejs }}"
+                    data-last-name="{{ booking.customer.last_name|default:'N/A'|escapejs }}"
+                    data-phone="{{ booking.customer.userprofile.phone_number|default:'N/A'|escapejs }}"
+                    data-birthday="{{ booking.customer.userprofile.birthday|date:'d/m/Y'|default:'N/A' }}"
+                    data-address="{{ booking.customer.userprofile.address |default:'N/A'|escapejs }}"
+                >
+                    <i class="bi bi-eye-fill"></i> View User
+                </button>
+
             </div>
         </div>
         {% endfor %}
@@ -610,6 +626,7 @@
     .booking-details-grid {
         grid-template-columns: 1fr;
     }
+
 }
 </style>
 
@@ -631,6 +648,152 @@ function switchTab(tabName) {
     // Add active class to selected tab
     document.getElementById('tab-' + tabName).classList.add('active');
 }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const userModal = document.getElementById('userModal');
+
+    userModal.addEventListener('show.bs.modal', function (event) {
+        const btn = event.relatedTarget;
+
+        document.getElementById('modalUsername').textContent =
+            btn.getAttribute('data-username') || 'N/A';
+
+        document.getElementById('modalEmail').textContent =
+            btn.getAttribute('data-email') || 'N/A';
+
+        document.getElementById('modalFirstName').textContent =
+            btn.getAttribute('data-first-name') || 'N/A';
+
+        document.getElementById('modalLastName').textContent =
+            btn.getAttribute('data-last-name') || 'N/A';
+
+        document.getElementById('modalPhone').textContent =
+            btn.getAttribute('data-phone') || 'N/A';
+
+        document.getElementById('modalBirthday').textContent =
+            btn.getAttribute('data-birthday') || 'N/A';
+
+        document.getElementById('modalAddress').textContent =
+            btn.getAttribute('data-address') || 'N/A';
+    });
+});
+
 </script>
 
+<!-- User Details Modal -->
+<div class="modal fade" id="userModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-body p-4" style="background-color: #f8f9fa;">
+            
+                <!-- User Information Cards -->
+                <div class="row g-3">
+
+                    <!-- Personal Information Card -->
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="text-muted mb-3 text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px; font-weight: 600;">
+                                    👤 Personal Information
+                                </h6>
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted small mb-1">Username</label>
+                                        <p class="mb-0 fw-semibold" id="modalUsername">-</p>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted small mb-1">Email Address</label>
+                                        <p class="mb-0 fw-semibold" id="modalEmail">-</p>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted small mb-1">First Name</label>
+                                        <p class="mb-0 fw-semibold" id="modalFirstName">-</p>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted small mb-1">Last Name</label>
+                                        <p class="mb-0 fw-semibold" id="modalLastName">-</p>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted small mb-1">Birthday</label>
+                                        <p class="mb-0 fw-semibold" id="modalBirthday">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Contact Information Card -->
+                    <div class="col-12">
+                        <div class="card border-0 shadow-sm">
+                            <div class="card-body">
+                                <h6 class="text-muted mb-3 text-uppercase" style="font-size: 0.75rem; letter-spacing: 1px; font-weight: 600;">
+                                    📞 Contact Information
+                                </h6>
+                                
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label text-muted small mb-1">Phone Number</label>
+                                        <p class="mb-0 fw-semibold" id="modalPhone">-</p>
+                                    </div>
+
+                                    <div class="col-12">
+                                        <label class="form-label text-muted small mb-1">Address</label>
+                                        <p class="mb-0 fw-semibold" id="modalAddress">-</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <div class="modal-footer border-0 bg-white" style="padding: 1rem 1.5rem;">
+                <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">
+                    ✕ Close
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<style>
+    #userModal .modal-content {
+        border-radius: 15px;
+        overflow: hidden;
+    }
+    
+    #userModal .card {
+        border-radius: 10px;
+        transition: transform 0.2s ease;
+    }
+    
+    #userModal .card:hover {
+        transform: translateY(-2px);
+    }
+    
+    #userModal .btn {
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    #userModal .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    #userModal .btn-light:hover {
+        background-color: #e9ecef;
+    }
+</style>
+
 {% endblock %}
+
+
