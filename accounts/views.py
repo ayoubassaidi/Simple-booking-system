@@ -8,7 +8,7 @@ from functools import wraps
 from .models import UserProfile
 from .forms import UserRegistrationForm, ProviderRegistrationForm
 from bookings.models import Notification, Service, Booking
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 import random
 
 # Create your views here.
@@ -17,7 +17,8 @@ import random
 def home(request):
     """Home/landing page with featured services and categories"""
     # Get 6 random featured services
-    all_services = list(Service.objects.filter(is_active=True).select_related('provider'))
+    all_services = list(Service.objects.filter(
+        is_active=True).select_related('provider'))
     featured_services = random.sample(all_services, min(6, len(all_services)))
 
     # Get popular categories with service counts
@@ -91,9 +92,11 @@ def custom_login(request):
                 if user_profile.user_type != account_type:
                     # Wrong account type selected
                     if account_type == 'user':
-                        messages.error(request, 'You are not allowed to login with this panel. This account is registered as a Service Provider. Please select "Provider" to login.')
+                        messages.error(
+                            request, 'You are not allowed to login with this panel. This account is registered as a Service Provider. Please select "Provider" to login.')
                     else:
-                        messages.error(request, 'You are not allowed to login with this panel. This account is registered as a User. Please select "User" to login.')
+                        messages.error(
+                            request, 'You are not allowed to login with this panel. This account is registered as a User. Please select "User" to login.')
                     return redirect('login')
 
                 # Account type matches - login successful
@@ -213,7 +216,8 @@ def dashboard(request):
             if action == "accept":
                 booking.status = "confirmed"
                 booking.save()
-                messages.success(request, f"Booking accepted for {booking.customer.username}")
+                messages.success(
+                    request, f"Booking accepted for {booking.customer.username}")
 
             elif action == "reject":
                 booking.status = "cancelled"
@@ -221,7 +225,8 @@ def dashboard(request):
                 # Make availability slot available again
                 booking.availability.is_available = True
                 booking.availability.save()
-                messages.success(request, f"Booking rejected for {booking.customer.username}")
+                messages.success(
+                    request, f"Booking rejected for {booking.customer.username}")
 
             elif action == "complete":
                 booking.status = "completed"
@@ -258,12 +263,15 @@ def dashboard(request):
         ).aggregate(total=Sum('price'))['total'] or 0
 
         # Pending bookings (for sections - query sets)
-        pending_bookings_list = provider_bookings.filter(status='pending').order_by('date', 'start_time')
-        confirmed_bookings_list = provider_bookings.filter(status='confirmed').order_by('date', 'start_time')
+        pending_bookings_list = provider_bookings.filter(
+            status='pending').order_by('date', 'start_time')
+        confirmed_bookings_list = provider_bookings.filter(
+            status='confirmed').order_by('date', 'start_time')
 
         # Counts for stats
         pending_bookings = provider_bookings.filter(status='pending').count()
-        completed_bookings = provider_bookings.filter(status='completed').count()
+        completed_bookings = provider_bookings.filter(
+            status='completed').count()
 
         # Upcoming bookings (confirmed or pending, date in future)
         today = datetime.now().date()
@@ -276,7 +284,8 @@ def dashboard(request):
         recent_bookings = provider_bookings.order_by('-created_at')[:5]
 
         # Active services count
-        active_services = Service.objects.filter(provider=request.user, is_active=True).count()
+        active_services = Service.objects.filter(
+            provider=request.user, is_active=True).count()
 
         # This month's revenue
         first_day_of_month = datetime.now().replace(day=1).date()
@@ -333,7 +342,8 @@ def dashboard(request):
         ).order_by('-date', '-start_time').first()
 
         # Completed bookings count
-        completed_bookings = customer_bookings.filter(status='completed').count()
+        completed_bookings = customer_bookings.filter(
+            status='completed').count()
 
         # Pending bookings count
         pending_bookings = customer_bookings.filter(status='pending').count()
@@ -367,30 +377,43 @@ def dashboard(request):
 
 @login_required
 def profile(request):
-    """User profile page"""
     try:
         user_profile = UserProfile.objects.get(user=request.user)
     except UserProfile.DoesNotExist:
         user_profile = None
 
     if request.method == 'POST':
-        # Update user information
         request.user.first_name = request.POST.get('first_name', '')
         request.user.last_name = request.POST.get('last_name', '')
         request.user.email = request.POST.get('email', '')
         request.user.save()
 
-        # Update profile information
         if user_profile:
             user_profile.phone_number = request.POST.get('phone_number', '')
 
             if user_profile.user_type == 'user':
-                user_profile.birthday = request.POST.get('birthday') or None
+                birthday_str = request.POST.get('birthday')
+
+                if birthday_str:
+                    birthday = datetime.strptime(
+                        birthday_str, "%Y-%m-%d").date()
+
+                    if birthday >= date.today():
+                        messages.error(
+                            request, "Birthday must be a past date.")
+                        return redirect('profile')
+
+                    user_profile.birthday = birthday
+                else:
+                    user_profile.birthday = None
+
                 user_profile.address = request.POST.get('address', '')
+
             else:  # provider
                 user_profile.city = request.POST.get('city', '')
                 user_profile.bio = request.POST.get('bio', '')
-                user_profile.service_type = request.POST.get('service_type', '')
+                user_profile.service_type = request.POST.get(
+                    'service_type', '')
                 user_profile.kvk_number = request.POST.get('kvk_number', '')
 
             user_profile.save()
@@ -398,11 +421,9 @@ def profile(request):
         messages.success(request, 'Profile updated successfully!')
         return redirect('profile')
 
-    context = {
+    return render(request, 'accounts/profile.html', {
         'user_profile': user_profile,
-    }
-
-    return render(request, 'accounts/profile.html', context)
+    })
 
 
 @login_required
@@ -415,7 +436,8 @@ def notifications(request):
     if request.GET.get('mark_read'):
         notification_id = request.GET.get('mark_read')
         try:
-            notification = Notification.objects.get(id=notification_id, user=request.user)
+            notification = Notification.objects.get(
+                id=notification_id, user=request.user)
             notification.is_read = True
             notification.save()
             return redirect('notifications')
@@ -432,7 +454,8 @@ def notifications(request):
     if request.GET.get('delete'):
         notification_id = request.GET.get('delete')
         try:
-            notification = Notification.objects.get(id=notification_id, user=request.user)
+            notification = Notification.objects.get(
+                id=notification_id, user=request.user)
             notification.delete()
             messages.success(request, 'Notification deleted!')
             return redirect('notifications')
@@ -458,13 +481,15 @@ def superadmin_required(view_func):
     @wraps(view_func)
     def _wrapped_view(request, *args, **kwargs):
         if not request.user.is_authenticated:
-            messages.error(request, 'You must be logged in to access this page.')
+            messages.error(
+                request, 'You must be logged in to access this page.')
             return redirect('login')
 
         try:
             user_profile = UserProfile.objects.get(user=request.user)
             if user_profile.user_type != 'superadmin':
-                messages.error(request, 'You do not have permission to access this page.')
+                messages.error(
+                    request, 'You do not have permission to access this page.')
                 return redirect('dashboard')
         except UserProfile.DoesNotExist:
             messages.error(request, 'User profile not found.')
@@ -486,7 +511,8 @@ def superadmin_dashboard(request):
     total_bookings = Booking.objects.count()
     pending_bookings = Booking.objects.filter(status='pending').count()
     completed_bookings = Booking.objects.filter(status='completed').count()
-    total_revenue = Booking.objects.filter(status='completed').aggregate(total=Sum('price'))['total'] or 0
+    total_revenue = Booking.objects.filter(
+        status='completed').aggregate(total=Sum('price'))['total'] or 0
 
     # Calculate total hours booked across all providers
     total_hours = 0
@@ -499,8 +525,10 @@ def superadmin_dashboard(request):
     # Monthly revenue (last 6 months)
     monthly_revenue = []
     for i in range(5, -1, -1):
-        month_start = (datetime.now().replace(day=1) - timedelta(days=30*i)).replace(day=1)
-        month_end = (month_start + timedelta(days=32)).replace(day=1) - timedelta(days=1)
+        month_start = (datetime.now().replace(day=1) -
+                       timedelta(days=30*i)).replace(day=1)
+        month_end = (month_start + timedelta(days=32)
+                     ).replace(day=1) - timedelta(days=1)
         revenue = Booking.objects.filter(
             status='completed',
             date__gte=month_start.date(),
@@ -512,7 +540,8 @@ def superadmin_dashboard(request):
         })
 
     # Recent users
-    recent_users = User.objects.select_related('userprofile').order_by('-date_joined')[:5]
+    recent_users = User.objects.select_related(
+        'userprofile').order_by('-date_joined')[:5]
 
     # Top services by bookings
     top_services = Service.objects.annotate(
@@ -560,14 +589,16 @@ def superadmin_users(request):
                 target_user.is_active = not target_user.is_active
                 target_user.save()
                 status = 'activated' if target_user.is_active else 'deactivated'
-                messages.success(request, f'User {target_user.username} has been {status}.')
+                messages.success(
+                    request, f'User {target_user.username} has been {status}.')
 
             elif action == 'reset_password':
                 # Reset password to default
                 new_password = request.POST.get('new_password', 'password123')
                 target_user.set_password(new_password)
                 target_user.save()
-                messages.success(request, f'Password for {target_user.username} has been reset to: {new_password}')
+                messages.success(
+                    request, f'Password for {target_user.username} has been reset to: {new_password}')
 
         except User.DoesNotExist:
             messages.error(request, 'User not found.')
@@ -614,7 +645,8 @@ def superadmin_users(request):
 def superadmin_services(request):
     """Service management interface"""
     # Get all services
-    services = Service.objects.select_related('provider').order_by('-created_at')
+    services = Service.objects.select_related(
+        'provider').order_by('-created_at')
 
     # Filter by category if requested
     category_filter = request.GET.get('category')
@@ -670,10 +702,12 @@ def superadmin_notifications(request):
             recipients = User.objects.all()
         elif recipient_type == 'users':
             user_profiles = UserProfile.objects.filter(user_type='user')
-            recipients = User.objects.filter(id__in=user_profiles.values_list('user_id', flat=True))
+            recipients = User.objects.filter(
+                id__in=user_profiles.values_list('user_id', flat=True))
         elif recipient_type == 'providers':
             user_profiles = UserProfile.objects.filter(user_type='provider')
-            recipients = User.objects.filter(id__in=user_profiles.values_list('user_id', flat=True))
+            recipients = User.objects.filter(
+                id__in=user_profiles.values_list('user_id', flat=True))
         else:
             recipients = User.objects.all()
 
@@ -692,7 +726,8 @@ def superadmin_notifications(request):
         # Bulk create notifications
         Notification.objects.bulk_create(notifications_to_create)
 
-        messages.success(request, f'Successfully sent notification to {len(notifications_to_create)} users!')
+        messages.success(
+            request, f'Successfully sent notification to {len(notifications_to_create)} users!')
         return redirect('superadmin_notifications')
 
     # Get recent unique notifications sent (grouped by title and message to avoid duplicates)

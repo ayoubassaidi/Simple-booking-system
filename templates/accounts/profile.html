@@ -80,10 +80,16 @@
                     <div class="col-md-6">
                         <div class="form-group-profile">
                             <label><i class="bi bi-calendar-event"></i> Birthday</label>
-                            <input type="date" name="birthday" class="form-control-profile" value="{{ user_profile.birthday|date:'Y-m-d' }}">
+                            <input type="text" 
+                                name="birthday" 
+                                id="birthday" 
+                                class="form-control-profile"
+                                value="{{ user_profile.birthday|date:'Y-m-d' }}"
+                                placeholder="Select your birthday"
+                                readonly>
+                            <small class="text-danger" id="birthday-error" style="display:none;">Birthday must be in the past.</small>
                         </div>
                     </div>
-
                     <div class="col-md-12">
                         <div class="form-group-profile">
                             <label><i class="bi bi-geo-alt"></i> Address</label>
@@ -177,4 +183,31 @@
     </div>
 </div>
 
+<!-- Add Flatpickr CSS and JS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const birthdayInput = document.getElementById('birthday');
+    if (!birthdayInput) return;
+
+    // Get yesterday's date
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // Initialize Flatpickr
+    flatpickr(birthdayInput, {
+        dateFormat: "Y-m-d",
+        maxDate: yesterday,
+        allowInput: false,
+        disableMobile: false,
+        onChange: function(selectedDates, dateStr, instance) {
+            document.getElementById('birthday-error').style.display = 'none';
+        }
+    });
+});
+</script>
 {% endblock %}
+
+
