@@ -1,6 +1,7 @@
 from django.urls import path
 from .views import (
     add_availability,
+    delete_availability,
     browse_providers,
     my_services,
     add_service,
@@ -17,6 +18,7 @@ from .views import (
 
 urlpatterns = [
     path("add-availability/", add_availability, name="add_availability"),
+    path("delete-availability/<int:availability_id>/", delete_availability, name="delete_availability"),
     path("browse-providers/", browse_providers, name="browse_providers"),
     path("search/", search_services, name="search_services"),
     path("service/<int:service_id>/availability/",

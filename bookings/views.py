@@ -2,7 +2,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Min, Max
 from accounts.models import UserProfile
 from .models import Availability, Service, SearchQuery, Booking, ProviderProfile
 from .forms import ServiceForm
@@ -10,6 +10,9 @@ from .forms import ServiceForm
 
 @login_required
 def add_availability(request):
+    """Add availability slots - supports both single and bulk creation"""
+    from datetime import datetime, timedelta
+
     # Ensure only providers can access
     if not ProviderProfile.is_provider(request.user):
         messages.error(request, "Only service providers can access this page.")
@@ -26,18 +29,110 @@ def add_availability(request):
         if service_id:
             service = Service.objects.get(id=service_id, provider=request.user)
 
-        Availability.objects.create(
-            provider=request.user,
-            service=service,
-            date=request.POST.get("date"),
-            start_time=request.POST.get("start_time"),
-            end_time=request.POST.get("end_time"),
-        )
-        messages.success(request, "Availability slot added successfully!")
-        return redirect("add_availability")
+        # Check if this is bulk creation or single slot
+        mode = request.POST.get("mode", "single")
 
-    slots = Availability.objects.filter(provider=request.user).select_related(
-        'service').order_by("date", "start_time")
+        if mode == "bulk":
+            # Bulk creation logic
+            start_date_str = request.POST.get("start_date")
+            end_date_str = request.POST.get("end_date")
+            start_time_str = request.POST.get("start_time")
+            end_time_str = request.POST.get("end_time")
+            repeat_pattern = request.POST.get("repeat_pattern", "daily")
+            selected_days = request.POST.getlist("selected_days")  # For weekly pattern
+
+            try:
+                start_date = datetime.strptime(start_date_str, '%Y-%m-%d').date()
+                end_date = datetime.strptime(end_date_str, '%Y-%m-%d').date()
+                start_time = datetime.strptime(start_time_str, '%H:%M').time()
+                end_time = datetime.strptime(end_time_str, '%H:%M').time()
+
+                slots_created = 0
+                current_date = start_date
+
+                # Get service duration (in minutes)
+                service_duration = service.duration if service else 60  # Default to 60 minutes
+
+                while current_date <= end_date:
+                    should_create = False
+
+                    if repeat_pattern == "daily":
+                        should_create = True
+                    elif repeat_pattern == "weekdays":
+                        # Monday = 0, Sunday = 6
+                        should_create = current_date.weekday() < 5
+                    elif repeat_pattern == "weekends":
+                        should_create = current_date.weekday() >= 5
+                    elif repeat_pattern == "custom" and selected_days:
+                        # selected_days contains day names like ['monday', 'wednesday', 'friday']
+                        day_name = current_date.strftime('%A').lower()
+                        should_create = day_name in selected_days
+
+                    if should_create:
+                        # Split the time range into slots based on service duration
+                        current_slot_start = start_time
+
+                        while True:
+                            # Calculate end time for this slot
+                            start_datetime = datetime.combine(current_date, current_slot_start)
+                            slot_end_datetime = start_datetime + timedelta(minutes=service_duration)
+                            current_slot_end = slot_end_datetime.time()
+
+                            # Check if this slot goes beyond the end time
+                            end_datetime = datetime.combine(current_date, end_time)
+                            if slot_end_datetime > end_datetime:
+                                break
+
+                            # Check if slot already exists to avoid duplicates
+                            exists = Availability.objects.filter(
+                                provider=request.user,
+                                service=service,
+                                date=current_date,
+                                start_time=current_slot_start,
+                                end_time=current_slot_end
+                            ).exists()
+
+                            if not exists:
+                                Availability.objects.create(
+                                    provider=request.user,
+                                    service=service,
+                                    date=current_date,
+                                    start_time=current_slot_start,
+                                    end_time=current_slot_end,
+                                )
+                                slots_created += 1
+
+                            # Move to next slot
+                            current_slot_start = current_slot_end
+
+                    current_date += timedelta(days=1)
+
+                messages.success(request, f"Successfully created {slots_created} availability slots!")
+                return redirect("add_availability")
+
+            except Exception as e:
+                messages.error(request, f"Error creating bulk availability: {str(e)}")
+                return redirect("add_availability")
+        else:
+            # Single slot creation (original logic)
+            Availability.objects.create(
+                provider=request.user,
+                service=service,
+                date=request.POST.get("date"),
+                start_time=request.POST.get("start_time"),
+                end_time=request.POST.get("end_time"),
+            )
+            messages.success(request, "Availability slot added successfully!")
+            return redirect("add_availability")
+
+    # Get slots ordered by most recent first, then show upcoming slots
+    from datetime import date as date_today
+    today = date_today.today()
+
+    slots = Availability.objects.filter(
+        provider=request.user,
+        date__gte=today  # Only show today and future slots
+    ).select_related('service').order_by("-date", "-start_time")  # Most recent first
 
     return render(request, "bookings/add_availability.html", {
         "slots": slots,
@@ -330,17 +425,46 @@ def view_availability(request, service_id):
     else:
         selected_date = datetime.now().date()
 
-    # Generate 7 days starting from today
+    # Get availability date range for this service
     today = datetime.now().date()
+    availability_range = Availability.objects.filter(
+        provider=service.provider,
+        service=service,
+        date__gte=today,
+        is_available=True
+    ).aggregate(
+        earliest_date=Min('date'),
+        latest_date=Max('date')
+    )
+
+    earliest_available = availability_range['earliest_date'] or today
+    latest_available = availability_range['latest_date'] or today
+
+    # Calculate total available days
+    total_available_days = (latest_available - earliest_available).days + 1 if latest_available >= earliest_available else 0
+
+    # Get the week offset from query params (for navigation)
+    week_offset = int(request.GET.get('week', 0))
+
+    # Generate 7 days starting from the calculated start date
+    start_date = today + timedelta(days=week_offset * 7)
     week_dates = []
     for i in range(7):
-        date = today + timedelta(days=i)
+        date = start_date + timedelta(days=i)
         week_dates.append({
             'date': date,
             'day_name': date.strftime('%a'),
             'day_num': date.strftime('%d'),
-            'is_selected': date == selected_date
+            'is_selected': date == selected_date,
+            'month': date.strftime('%B'),
+            'year': date.year
         })
+
+    # Calculate navigation info
+    has_previous_week = week_offset > 0
+    # Check if there are dates beyond current week view
+    end_of_current_week = start_date + timedelta(days=6)
+    has_next_week = latest_available > end_of_current_week
 
     # Get availability slots for the selected date
     availability_slots = Availability.objects.filter(
@@ -349,42 +473,60 @@ def view_availability(request, service_id):
         date=selected_date
     ).order_by('start_time')
 
-    # Create a lookup dictionary for quick access
-    slot_lookup = {}
-    for slot in availability_slots:
-        hour = slot.start_time.hour
-        slot_lookup[hour] = slot
+    # Get all bookings for this provider on the selected date to check for conflicts
+    existing_bookings = Booking.objects.filter(
+        provider=service.provider,
+        date=selected_date,
+        status__in=['pending', 'confirmed']  # Only active bookings block slots
+    ).select_related('service')
 
-    # Generate time slots for the day (9 AM to 6 PM in 1-hour intervals)
+    # Helper function to check if a time slot conflicts with any existing booking
+    def is_slot_conflicting(slot_start, slot_end):
+        """Check if proposed time slot conflicts with any existing booking"""
+        for booking in existing_bookings:
+            booking_start = datetime.combine(selected_date, booking.start_time)
+            booking_end = datetime.combine(selected_date, booking.end_time)
+            proposed_start = datetime.combine(selected_date, slot_start)
+            proposed_end = datetime.combine(selected_date, slot_end)
+
+            # Check for overlap: bookings overlap if one starts before the other ends
+            if proposed_start < booking_end and proposed_end > booking_start:
+                return True
+        return False
+
+    # Build time slots from availability, respecting service duration
     time_slots = []
-    for hour in range(9, 18):
-        time_obj = datetime.strptime(f'{hour:02d}:00', '%H:%M').time()
-        display_time = datetime.strptime(
-            f'{hour:02d}:00', '%H:%M').strftime('%I:%M %p')
+    for slot in availability_slots:
+        # Calculate the end time based on service duration
+        slot_start_datetime = datetime.combine(selected_date, slot.start_time)
+        slot_end_datetime = slot_start_datetime + timedelta(minutes=service.duration)
+        calculated_end_time = slot_end_datetime.time()
 
-        # Check if there's an availability slot for this hour
-        if hour in slot_lookup:
-            slot = slot_lookup[hour]
-            time_slots.append({
-                'id': slot.id,
-                'time': time_obj.strftime('%H:%M'),
-                'display_time': display_time,
-                'is_available': slot.is_available
-            })
-        else:
-            # Show as unavailable if no slot exists
-            time_slots.append({
-                'id': None,
-                'time': time_obj.strftime('%H:%M'),
-                'display_time': display_time,
-                'is_available': False
-            })
+        # Check if this slot conflicts with existing bookings
+        has_conflict = is_slot_conflicting(slot.start_time, calculated_end_time)
+
+        # Determine if slot is truly available
+        is_truly_available = slot.is_available and not has_conflict
+
+        time_slots.append({
+            'id': slot.id,
+            'time': slot.start_time.strftime('%H:%M'),
+            'display_time': slot.start_time.strftime('%I:%M %p'),
+            'end_time': calculated_end_time.strftime('%H:%M'),
+            'is_available': is_truly_available
+        })
 
     context = {
         'service': service,
         'week_dates': week_dates,
         'time_slots': time_slots,
         'selected_date': selected_date,
+        'earliest_available': earliest_available,
+        'latest_available': latest_available,
+        'total_available_days': total_available_days,
+        'current_week_offset': week_offset,
+        'has_previous_week': has_previous_week,
+        'has_next_week': has_next_week,
     }
 
     return render(request, 'bookings/view_availability.html', context)
@@ -439,6 +581,29 @@ def confirm_booking(request, service_id):
 
     # CREATE BOOKING
     try:
+        # Calculate end time based on service duration
+        from datetime import datetime, timedelta
+        start_datetime = datetime.combine(availability.date, availability.start_time)
+        end_datetime = start_datetime + timedelta(minutes=service.duration)
+        calculated_end_time = end_datetime.time()
+
+        # Check for booking conflicts before creating
+        conflicting_bookings = Booking.objects.filter(
+            provider=availability.provider,
+            date=availability.date,
+            status__in=['pending', 'confirmed']
+        )
+
+        # Check if the new booking would overlap with any existing booking
+        for existing_booking in conflicting_bookings:
+            existing_start = datetime.combine(availability.date, existing_booking.start_time)
+            existing_end = datetime.combine(availability.date, existing_booking.end_time)
+
+            # Check for overlap
+            if start_datetime < existing_end and end_datetime > existing_start:
+                messages.error(request, "This time slot conflicts with an existing booking. Please choose another time.")
+                return redirect("view_availability", service_id=service_id)
+
         booking = Booking.objects.create(
             customer=request.user,
             provider=availability.provider,
@@ -446,7 +611,7 @@ def confirm_booking(request, service_id):
             availability=availability,
             date=availability.date,
             start_time=availability.start_time,
-            end_time=availability.end_time,
+            end_time=calculated_end_time,  # Use calculated end time based on duration
             price=service.price,
             status="pending"
         )
@@ -454,6 +619,23 @@ def confirm_booking(request, service_id):
         # Mark slot unavailable
         availability.is_available = False
         availability.save()
+
+        # Mark any other availability slots that would conflict as unavailable
+        overlapping_slots = Availability.objects.filter(
+            provider=availability.provider,
+            service=service,
+            date=availability.date,
+            is_available=True
+        ).exclude(id=availability.id)
+
+        for slot in overlapping_slots:
+            slot_start = datetime.combine(availability.date, slot.start_time)
+            slot_end_calc = slot_start + timedelta(minutes=service.duration)
+
+            # If this slot would overlap with our new booking, mark it unavailable
+            if slot_start < end_datetime and slot_end_calc > start_datetime:
+                slot.is_available = False
+                slot.save()
 
         messages.success(
             request, f"Booking request sent! Waiting for provider confirmation for {availability.date} at {availability.start_time}.")
@@ -491,11 +673,55 @@ def provider_bookings(request):
                     request, f"Booking accepted for {booking.customer.username}")
 
             elif action == "reject":
+                from datetime import datetime, timedelta
+
                 booking.status = "cancelled"
                 booking.save()
+
                 # Make availability slot available again
                 booking.availability.is_available = True
                 booking.availability.save()
+
+                # Free up overlapping slots that were blocked by this booking
+                booking_start = datetime.combine(booking.date, booking.start_time)
+                booking_end = datetime.combine(booking.date, booking.end_time)
+
+                # Find all unavailable slots for this service on the same date
+                overlapping_slots = Availability.objects.filter(
+                    provider=booking.provider,
+                    service=booking.service,
+                    date=booking.date,
+                    is_available=False
+                ).exclude(id=booking.availability.id)
+
+                # Check each slot to see if it was blocked by this booking
+                for slot in overlapping_slots:
+                    slot_start = datetime.combine(booking.date, slot.start_time)
+                    slot_end_calc = slot_start + timedelta(minutes=booking.service.duration)
+
+                    # If this slot was overlapping with the cancelled booking
+                    if slot_start < booking_end and slot_end_calc > booking_start:
+                        # Check if there are other active bookings blocking this slot
+                        other_bookings = Booking.objects.filter(
+                            provider=booking.provider,
+                            date=booking.date,
+                            status__in=['pending', 'confirmed']
+                        ).exclude(id=booking.id)
+
+                        slot_is_blocked = False
+                        for other_booking in other_bookings:
+                            other_start = datetime.combine(booking.date, other_booking.start_time)
+                            other_end = datetime.combine(booking.date, other_booking.end_time)
+
+                            if slot_start < other_end and slot_end_calc > other_start:
+                                slot_is_blocked = True
+                                break
+
+                        # Only free the slot if no other bookings block it
+                        if not slot_is_blocked:
+                            slot.is_available = True
+                            slot.save()
+
                 messages.success(
                     request, f"Booking rejected for {booking.customer.username}")
 
@@ -557,6 +783,8 @@ def cancel_booking(request, booking_id):
     )
 
     if request.method == "POST":
+        from datetime import datetime, timedelta
+
         # Get the associated availability slot
         availability = booking.availability
 
@@ -568,6 +796,46 @@ def cancel_booking(request, booking_id):
         if availability:
             availability.is_available = True
             availability.save()
+
+            # Free up overlapping slots that were blocked by this booking
+            booking_start = datetime.combine(booking.date, booking.start_time)
+            booking_end = datetime.combine(booking.date, booking.end_time)
+
+            # Find all unavailable slots for this service on the same date
+            overlapping_slots = Availability.objects.filter(
+                provider=booking.provider,
+                service=booking.service,
+                date=booking.date,
+                is_available=False
+            ).exclude(id=availability.id)
+
+            # Check each slot to see if it was blocked by this booking
+            for slot in overlapping_slots:
+                slot_start = datetime.combine(booking.date, slot.start_time)
+                slot_end_calc = slot_start + timedelta(minutes=booking.service.duration)
+
+                # If this slot was overlapping with the cancelled booking
+                if slot_start < booking_end and slot_end_calc > booking_start:
+                    # Check if there are other active bookings blocking this slot
+                    other_bookings = Booking.objects.filter(
+                        provider=booking.provider,
+                        date=booking.date,
+                        status__in=['pending', 'confirmed']
+                    ).exclude(id=booking.id)
+
+                    slot_is_blocked = False
+                    for other_booking in other_bookings:
+                        other_start = datetime.combine(booking.date, other_booking.start_time)
+                        other_end = datetime.combine(booking.date, other_booking.end_time)
+
+                        if slot_start < other_end and slot_end_calc > other_start:
+                            slot_is_blocked = True
+                            break
+
+                    # Only free the slot if no other bookings block it
+                    if not slot_is_blocked:
+                        slot.is_available = True
+                        slot.save()
 
         # Delete the booking
         booking.delete()
@@ -581,3 +849,52 @@ def cancel_booking(request, booking_id):
 
     # If GET request, redirect to bookings page
     return redirect('my_bookings')
+
+
+@login_required
+def delete_availability(request, availability_id):
+    """Delete an availability slot - only if not booked and owned by provider"""
+
+    # Get the availability slot
+    availability = get_object_or_404(Availability, id=availability_id)
+
+    # Security check: Only the provider who created it can delete
+    if availability.provider != request.user:
+        messages.error(request, "You don't have permission to delete this availability slot.")
+        return redirect('add_availability')
+
+    # Check if this slot is booked (has a related booking)
+    has_booking = Booking.objects.filter(
+        availability=availability,
+        status__in=['pending', 'confirmed']
+    ).exists()
+
+    if has_booking:
+        messages.error(
+            request,
+            "Cannot delete this slot - it has an active booking. Please cancel the booking first."
+        )
+        return redirect('add_availability')
+
+    # Check if slot is already marked as unavailable (booked)
+    if not availability.is_available:
+        messages.warning(
+            request,
+            "This slot is already booked and cannot be deleted. Cancel the booking first."
+        )
+        return redirect('add_availability')
+
+    # Store info for success message before deletion
+    slot_date = availability.date.strftime('%B %d, %Y')
+    slot_time = availability.start_time.strftime('%I:%M %p')
+    service_name = availability.service.name if availability.service else "General availability"
+
+    # Delete the availability slot
+    availability.delete()
+
+    messages.success(
+        request,
+        f'Availability slot for "{service_name}" on {slot_date} at {slot_time} has been deleted successfully.'
+    )
+
+    return redirect('add_availability')

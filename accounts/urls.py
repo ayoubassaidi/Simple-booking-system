@@ -15,6 +15,7 @@ urlpatterns = [
 
     # Dashboard (protected by login_required)
     path('dashboard/', views.dashboard, name='dashboard'),
+    path('calendar/', views.booking_calendar, name='booking_calendar'),
 
     # Profile & Notifications
     path('profile/', views.profile, name='profile'),

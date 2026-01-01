@@ -1,0 +1,303 @@
+{% extends "dashboard_base.html" %}
+{% load static %}
+
+{% block page_title %}Booking Calendar{% endblock %}
+{% block page_subtitle %}View and manage your bookings on the calendar{% endblock %}
+
+{% block dashboard_content %}
+
+<!-- Booking Calendar -->
+<div class="main-section">
+    <div class="bg-white rounded-2xl p-8 shadow-xl">
+        <!-- Calendar Header -->
+        <div class="flex justify-between items-center mb-8 pb-6 border-b-4 border-gray-200">
+            <button id="prevMonth" class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white w-12 h-12 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/50">
+                <i class="bi bi-chevron-left text-xl"></i>
+            </button>
+            <h5 id="calendarMonthYear" class="text-3xl font-bold text-gray-800 m-0 text-center flex-1"></h5>
+            <button id="nextMonth" class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white w-12 h-12 rounded-xl flex items-center justify-center cursor-pointer transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/50">
+                <i class="bi bi-chevron-right text-xl"></i>
+            </button>
+        </div>
+
+        <!-- Calendar Grid -->
+        <div class="grid grid-cols-7 gap-3">
+            <!-- Day headers -->
+            <div class="text-center font-bold text-gray-700 p-4 text-base uppercase tracking-wider bg-gray-50 rounded-lg">Sun</div>
+            <div class="text-center font-bold text-gray-700 p-4 text-base uppercase tracking-wider bg-gray-50 rounded-lg">Mon</div>
+            <div class="text-center font-bold text-gray-700 p-4 text-base uppercase tracking-wider bg-gray-50 rounded-lg">Tue</div>
+            <div class="text-center font-bold text-gray-700 p-4 text-base uppercase tracking-wider bg-gray-50 rounded-lg">Wed</div>
+            <div class="text-center font-bold text-gray-700 p-4 text-base uppercase tracking-wider bg-gray-50 rounded-lg">Thu</div>
+            <div class="text-center font-bold text-gray-700 p-4 text-base uppercase tracking-wider bg-gray-50 rounded-lg">Fri</div>
+            <div class="text-center font-bold text-gray-700 p-4 text-base uppercase tracking-wider bg-gray-50 rounded-lg">Sat</div>
+
+            <!-- Days will be populated by JavaScript -->
+            <div id="calendarDays" class="col-span-7 grid grid-cols-7 gap-3"></div>
+        </div>
+
+        <!-- Selected Day Details -->
+        <div id="selectedDayDetails" class="mt-10 pt-8 border-t-4 border-gray-200 hidden">
+            <h6 class="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+                <i class="bi bi-calendar-check text-indigo-500 text-3xl"></i>
+                <span id="selectedDayDate"></span>
+            </h6>
+            <div id="selectedDayBookings" class="flex flex-col gap-4"></div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Bookings data from Django
+const bookingsData = {{ bookings_json|safe }};
+
+// Calendar state
+let currentDate = new Date();
+let selectedDate = null;
+
+// Month names
+const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+// Status badge configuration
+const statusConfig = {
+    'pending': { class: 'badge bg-warning text-dark', label: 'Pending' },
+    'confirmed': { class: 'badge bg-success', label: 'Confirmed' },
+    'completed': { class: 'badge bg-primary', label: 'Completed' }
+};
+
+// Initialize calendar on page load
+document.addEventListener('DOMContentLoaded', function() {
+    renderCalendar();
+
+    // Navigation buttons
+    document.getElementById('prevMonth').addEventListener('click', function() {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
+    });
+
+    document.getElementById('nextMonth').addEventListener('click', function() {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
+    });
+});
+
+function renderCalendar() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    // Update header
+    document.getElementById('calendarMonthYear').textContent = `${monthNames[month]} ${year}`;
+
+    // Get first day of month and number of days
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const daysInMonth = lastDay.getDate();
+    const startingDayOfWeek = firstDay.getDay();
+
+    // Get previous month's last days
+    const prevMonthLastDay = new Date(year, month, 0).getDate();
+
+    // Clear calendar
+    const calendarDays = document.getElementById('calendarDays');
+    calendarDays.innerHTML = '';
+
+    // Add days from previous month
+    for (let i = startingDayOfWeek - 1; i >= 0; i--) {
+        const day = prevMonthLastDay - i;
+        const dayElement = createDayElement(day, true, null);
+        calendarDays.appendChild(dayElement);
+    }
+
+    // Add days from current month
+    const today = new Date();
+    for (let day = 1; day <= daysInMonth; day++) {
+        const date = new Date(year, month, day);
+        const dateStr = formatDate(date);
+        const isToday = date.toDateString() === today.toDateString();
+        const bookings = bookingsData[dateStr] || [];
+
+        const dayElement = createDayElement(day, false, date, isToday, bookings);
+        calendarDays.appendChild(dayElement);
+    }
+
+    // Add days from next month
+    const remainingDays = 42 - (startingDayOfWeek + daysInMonth); // 6 rows × 7 days = 42
+    for (let day = 1; day <= remainingDays; day++) {
+        const dayElement = createDayElement(day, true, null);
+        calendarDays.appendChild(dayElement);
+    }
+}
+
+function createDayElement(day, isOtherMonth, date, isToday = false, bookings = []) {
+    const dayElement = document.createElement('div');
+
+    // Base classes for all days
+    let classes = 'aspect-square border-4 rounded-2xl flex flex-col items-center justify-center p-3 transition-all duration-300 bg-white relative min-h-[100px]';
+
+    if (isOtherMonth) {
+        // Other month styling
+        classes += ' opacity-25 bg-gray-50 cursor-default border-gray-200';
+    } else {
+        // Current month styling
+        classes += ' border-gray-200 cursor-pointer hover:border-indigo-500 hover:-translate-y-1 hover:shadow-xl hover:shadow-indigo-500/30';
+
+        if (isToday) {
+            // Today styling
+            classes += ' !border-indigo-500 !border-4 bg-gradient-to-br from-indigo-50 to-purple-50';
+        }
+
+        if (bookings.length > 0) {
+            // Has bookings styling
+            classes += ' !bg-gradient-to-br !from-emerald-50 !to-green-50 !border-emerald-500 !border-4 hover:!from-emerald-100 hover:!to-green-100';
+        }
+    }
+
+    dayElement.className = classes;
+
+    // Day number
+    const dayNumber = document.createElement('div');
+    dayNumber.className = 'font-bold text-xl text-gray-800 mb-2';
+    dayNumber.textContent = day;
+    dayElement.appendChild(dayNumber);
+
+    // Booking count indicator
+    if (bookings.length > 0) {
+        const countBadge = document.createElement('div');
+        countBadge.className = 'text-sm text-emerald-700 font-bold bg-emerald-200 px-3 py-1 rounded-xl mt-2';
+        countBadge.textContent = `${bookings.length} ${bookings.length === 1 ? 'booking' : 'bookings'}`;
+        dayElement.appendChild(countBadge);
+    }
+
+    // Click handler
+    if (!isOtherMonth && date) {
+        dayElement.addEventListener('click', function() {
+            selectDate(date, bookings);
+        });
+    }
+
+    return dayElement;
+}
+
+function selectDate(date, bookings) {
+    selectedDate = date;
+
+    // Show selected day details
+    const detailsSection = document.getElementById('selectedDayDetails');
+    const dateDisplay = document.getElementById('selectedDayDate');
+    const bookingsContainer = document.getElementById('selectedDayBookings');
+
+    // Format date
+    const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+    dateDisplay.textContent = date.toLocaleDateString('en-US', options);
+
+    // Clear previous bookings
+    bookingsContainer.innerHTML = '';
+
+    if (bookings.length === 0) {
+        bookingsContainer.innerHTML = '<p class="text-gray-500 text-lg text-center py-10">No bookings for this day</p>';
+    } else {
+        // Sort bookings by time
+        bookings.sort((a, b) => a.time.localeCompare(b.time));
+
+        // Display each booking
+        bookings.forEach(booking => {
+            const bookingItem = createBookingItem(booking);
+            bookingsContainer.appendChild(bookingItem);
+        });
+    }
+
+    // Show details section
+    detailsSection.classList.remove('hidden');
+
+    // Scroll to details
+    detailsSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function createBookingItem(booking) {
+    const item = document.createElement('div');
+
+    // Base classes with border-left color based on status
+    let borderColor = 'border-indigo-500'; // default
+    if (booking.status === 'pending') {
+        borderColor = 'border-amber-500';
+    } else if (booking.status === 'confirmed') {
+        borderColor = 'border-emerald-500';
+    }
+
+    item.className = `bg-gray-50 border-l-8 ${borderColor} rounded-xl p-5 transition-all duration-300 hover:bg-gray-100 hover:translate-x-2 hover:shadow-lg`;
+
+    const statusBadge = statusConfig[booking.status] || statusConfig['pending'];
+
+    item.innerHTML = `
+        <div class="flex justify-between items-center mb-3">
+            <div class="font-bold text-gray-800 text-lg">${booking.service}</div>
+            <span class="${statusBadge.class}">${statusBadge.label}</span>
+        </div>
+        <div class="text-gray-700 text-base flex items-center gap-2 font-semibold">
+            <i class="bi bi-clock"></i>
+            ${booking.time} - ${booking.end_time}
+        </div>
+        <div class="flex gap-6 mt-3 flex-wrap">
+            <div class="flex items-center gap-2 text-gray-600 text-base">
+                <i class="bi bi-person text-indigo-500 text-lg"></i>
+                <span>${booking.customer}</span>
+            </div>
+            <div class="flex items-center gap-2 text-gray-600 text-base">
+                <i class="bi bi-cash text-indigo-500 text-lg"></i>
+                <strong>€${booking.price}</strong>
+            </div>
+        </div>
+    `;
+
+    return item;
+}
+
+function formatDate(date) {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+</script>
+
+<style>
+/* Minimal custom styles for responsive behavior */
+@media (max-width: 768px) {
+    #calendarDays > div {
+        min-height: 70px !important;
+        padding: 0.375rem !important;
+    }
+
+    #calendarDays .font-bold.text-xl {
+        font-size: 1rem !important;
+    }
+
+    #calendarDays .text-sm {
+        font-size: 0.7rem !important;
+        padding: 0.125rem 0.375rem !important;
+    }
+
+    .text-3xl {
+        font-size: 1.5rem !important;
+    }
+
+    .w-12.h-12 {
+        width: 2.5rem !important;
+        height: 2.5rem !important;
+    }
+
+    .bg-white.rounded-2xl {
+        padding: 1rem !important;
+    }
+
+    .grid.grid-cols-7 {
+        gap: 0.375rem !important;
+    }
+}
+</style>
+{% endblock %}

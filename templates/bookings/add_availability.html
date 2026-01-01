@@ -15,44 +15,271 @@
         </div>
     </div>
     {% else %}
-    <div class="availability-form-card">
-        <form method="post">
-            {% csrf_token %}
 
-            <div class="form-group-modern">
-                <label><i class="bi bi-grid-3x3"></i> Service</label>
-                <select name="service" class="form-select" required>
-                    <option value="">Select a service...</option>
-                    {% for service in provider_services %}
-                    <option value="{{ service.id }}">{{ service.name }} (€{{ service.price }} - {{ service.get_duration_display }})</option>
-                    {% endfor %}
-                </select>
-            </div>
-
-            <div class="form-group-modern">
-                <label><i class="bi bi-calendar"></i> Date</label>
-                <input type="date" name="date" class="form-control" required>
-            </div>
-
-            <div class="form-group-modern">
-                <label><i class="bi bi-clock"></i> Start Time</label>
-                <input type="time" name="start_time" class="form-control" required>
-            </div>
-
-            <div class="form-group-modern">
-                <label><i class="bi bi-clock-fill"></i> End Time</label>
-                <input type="time" name="end_time" class="form-control" required>
-            </div>
-
-            <button type="submit" class="btn-add-slot">
-                <i class="bi bi-plus-circle"></i>
-                <span>Add Slot</span>
+    <!-- Mode Selector Tabs -->
+    <ul class="nav nav-pills mb-4 bg-gradient-to-r from-indigo-50 to-purple-50 p-3 rounded-xl shadow-sm" role="tablist">
+        <li class="nav-item flex-fill" role="presentation">
+            <button class="nav-link active w-100 d-flex align-items-center justify-content-center gap-2 transition-all duration-300 hover:shadow-md"
+                    id="single-tab" data-bs-toggle="pill" data-bs-target="#single-form"
+                    type="button" role="tab">
+                <i class="bi bi-plus-circle text-lg"></i>
+                <span class="font-semibold">Single Slot</span>
             </button>
-        </form>
+        </li>
+        <li class="nav-item flex-fill" role="presentation">
+            <button class="nav-link w-100 d-flex align-items-center justify-content-center gap-2 transition-all duration-300 hover:shadow-md"
+                    id="bulk-tab" data-bs-toggle="pill" data-bs-target="#bulk-form"
+                    type="button" role="tab">
+                <i class="bi bi-calendar-range text-lg"></i>
+                <span class="font-semibold">Bulk Add</span>
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content">
+        <!-- Single Slot Form -->
+        <div class="tab-pane fade show active" id="single-form" role="tabpanel">
+            <div class="card border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-white to-gray-50 rounded-xl">
+                <div class="card-body p-6">
+                    <form method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="mode" value="single">
+
+                        <div class="mb-5">
+                            <label class="form-label fw-semibold text-gray-700 flex items-center gap-2 mb-3">
+                                <i class="bi bi-grid-3x3 text-indigo-600 text-xl"></i>
+                                <span class="text-base">Service</span>
+                            </label>
+                            <select name="service" class="form-select form-select-lg rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" required>
+                                <option value="">Select a service...</option>
+                                {% for service in provider_services %}
+                                <option value="{{ service.id }}">{{ service.name }} - €{{ service.price }} ({{ service.get_duration_display }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-5">
+                            <label class="form-label fw-semibold text-gray-700 flex items-center gap-2 mb-3">
+                                <i class="bi bi-calendar text-indigo-600 text-xl"></i>
+                                <span class="text-base">Date</span>
+                            </label>
+                            <input type="date" name="date" class="form-control form-control-lg rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" required>
+                        </div>
+
+                        <div class="row g-4 mb-5">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-gray-700 flex items-center gap-2 mb-3">
+                                    <i class="bi bi-clock text-indigo-600 text-xl"></i>
+                                    <span class="text-base">Start Time</span>
+                                </label>
+                                <input type="time" name="start_time" class="form-control form-control-lg rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" required>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold text-gray-700 flex items-center gap-2 mb-3">
+                                    <i class="bi bi-clock-fill text-indigo-600 text-xl"></i>
+                                    <span class="text-base">End Time</span>
+                                </label>
+                                <input type="time" name="end_time" class="form-control form-control-lg rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 d-flex align-items-center justify-content-center gap-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 border-0 rounded-lg shadow-md hover:shadow-lg transition-all duration-300">
+                            <i class="bi bi-plus-circle text-xl"></i>
+                            <span class="font-semibold">Add Single Slot</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bulk Form -->
+        <div class="tab-pane fade" id="bulk-form" role="tabpanel">
+            <div class="card border-0 shadow-lg hover:shadow-xl transition-shadow duration-300 bg-gradient-to-br from-white to-gray-50 rounded-xl">
+                <div class="card-body p-6">
+                    <form method="post" id="bulkAvailabilityForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="mode" value="bulk">
+
+                        <!-- Step 1: Service Selection -->
+                        <div class="mb-5">
+                            <div class="d-flex align-items-center gap-3 mb-4">
+                                <span class="badge bg-gradient-to-br from-indigo-600 to-purple-600 rounded-circle shadow-md" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 600;">1</span>
+                                <h5 class="mb-0 fw-bold text-gray-800 text-lg">Select Service</h5>
+                            </div>
+                            <select name="service" class="form-select form-select-lg rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" required>
+                                <option value="">Choose a service...</option>
+                                {% for service in provider_services %}
+                                <option value="{{ service.id }}">{{ service.name }} - €{{ service.price }} ({{ service.get_duration_display }})</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Step 2: Date Range -->
+                        <div class="mb-5">
+                            <div class="d-flex align-items-center gap-3 mb-4">
+                                <span class="badge bg-gradient-to-br from-indigo-600 to-purple-600 rounded-circle shadow-md" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 600;">2</span>
+                                <h5 class="mb-0 fw-bold text-gray-800 text-lg">Choose Date Range</h5>
+                            </div>
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-4">
+                                    <button type="button" class="btn btn-outline-primary w-100 preset-btn rounded-lg border-2 hover:shadow-md transition-all duration-300" data-days="7">
+                                        <i class="bi bi-calendar-week text-lg"></i>
+                                        <span class="ms-2 font-semibold">Next 7 Days</span>
+                                    </button>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="button" class="btn btn-outline-primary w-100 preset-btn rounded-lg border-2 hover:shadow-md transition-all duration-300" data-days="30">
+                                        <i class="bi bi-calendar-month text-lg"></i>
+                                        <span class="ms-2 font-semibold">Next 30 Days</span>
+                                    </button>
+                                </div>
+                                <div class="col-md-4">
+                                    <button type="button" class="btn btn-outline-primary w-100 preset-btn rounded-lg border-2 hover:shadow-md transition-all duration-300" data-days="90">
+                                        <i class="bi bi-calendar3 text-lg"></i>
+                                        <span class="ms-2 font-semibold">Next 90 Days</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold text-gray-700 text-base">From</label>
+                                    <input type="date" name="start_date" class="form-control form-control-lg rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" required id="bulkStartDate">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold text-gray-700 text-base">To</label>
+                                    <input type="date" name="end_date" class="form-control form-control-lg rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" required id="bulkEndDate">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Time Range -->
+                        <div class="mb-5">
+                            <div class="d-flex align-items-center gap-3 mb-4">
+                                <span class="badge bg-gradient-to-br from-indigo-600 to-purple-600 rounded-circle shadow-md" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 600;">3</span>
+                                <h5 class="mb-0 fw-bold text-gray-800 text-lg">Set Time Slot</h5>
+                            </div>
+
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold text-gray-700 text-base">Start Time</label>
+                                    <input type="time" name="start_time" class="form-control form-control-lg rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" required value="09:00">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold text-gray-700 text-base">End Time</label>
+                                    <input type="time" name="end_time" class="form-control form-control-lg rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all" required value="17:00">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Repeat Pattern -->
+                        <div class="mb-5">
+                            <div class="d-flex align-items-center gap-3 mb-4">
+                                <span class="badge bg-gradient-to-br from-indigo-600 to-purple-600 rounded-circle shadow-md" style="width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; font-weight: 600;">4</span>
+                                <h5 class="mb-0 fw-bold text-gray-800 text-lg">Select Days to Repeat</h5>
+                            </div>
+
+                            <div class="row g-4 mb-4">
+                                <div class="col-6 col-md-3">
+                                    <input type="radio" class="btn-check" name="repeat_pattern" value="daily" id="patternDaily">
+                                    <label class="btn btn-outline-primary w-100 text-center py-4 rounded-xl border-2 hover:shadow-md transition-all duration-300" for="patternDaily">
+                                        <i class="bi bi-calendar-fill d-block fs-2 mb-3 text-indigo-600"></i>
+                                        <div class="fw-bold text-base mb-1">Every Day</div>
+                                    </label>
+                                </div>
+
+                                <div class="col-6 col-md-3">
+                                    <input type="radio" class="btn-check" name="repeat_pattern" value="weekdays" id="patternWeekdays" checked>
+                                    <label class="btn btn-outline-primary w-100 text-center py-4 rounded-xl border-2 hover:shadow-md transition-all duration-300" for="patternWeekdays">
+                                        <i class="bi bi-calendar-range d-block fs-2 mb-3 text-indigo-600"></i>
+                                        <div class="fw-bold text-base mb-1">Weekdays</div>
+                                        <small class="text-muted d-block">Mon-Fri</small>
+                                    </label>
+                                </div>
+
+                                <div class="col-6 col-md-3">
+                                    <input type="radio" class="btn-check" name="repeat_pattern" value="weekends" id="patternWeekends">
+                                    <label class="btn btn-outline-primary w-100 text-center py-4 rounded-xl border-2 hover:shadow-md transition-all duration-300" for="patternWeekends">
+                                        <i class="bi bi-calendar2-week d-block fs-2 mb-3 text-indigo-600"></i>
+                                        <div class="fw-bold text-base mb-1">Weekends</div>
+                                        <small class="text-muted d-block">Sat-Sun</small>
+                                    </label>
+                                </div>
+
+                                <div class="col-6 col-md-3">
+                                    <input type="radio" class="btn-check" name="repeat_pattern" value="custom" id="patternCustom">
+                                    <label class="btn btn-outline-primary w-100 text-center py-4 rounded-xl border-2 hover:shadow-md transition-all duration-300" for="patternCustom">
+                                        <i class="bi bi-sliders d-block fs-2 mb-3 text-indigo-600"></i>
+                                        <div class="fw-bold text-base mb-1">Custom</div>
+                                        <small class="text-muted d-block">Pick days</small>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Custom Days Selector -->
+                            <div id="customDaysContainer" style="display: none;" class="p-4 bg-gradient-to-br from-indigo-50 to-purple-50 rounded-xl shadow-inner">
+                                <div class="row g-2">
+                                    <div class="col">
+                                        <input type="checkbox" class="btn-check" name="selected_days" value="monday" id="day-mon">
+                                        <label class="btn btn-outline-secondary w-100 rounded-lg border-2 hover:shadow transition-all" for="day-mon">
+                                            <span class="font-semibold">Mon</span>
+                                        </label>
+                                    </div>
+                                    <div class="col">
+                                        <input type="checkbox" class="btn-check" name="selected_days" value="tuesday" id="day-tue">
+                                        <label class="btn btn-outline-secondary w-100 rounded-lg border-2 hover:shadow transition-all" for="day-tue">
+                                            <span class="font-semibold">Tue</span>
+                                        </label>
+                                    </div>
+                                    <div class="col">
+                                        <input type="checkbox" class="btn-check" name="selected_days" value="wednesday" id="day-wed">
+                                        <label class="btn btn-outline-secondary w-100 rounded-lg border-2 hover:shadow transition-all" for="day-wed">
+                                            <span class="font-semibold">Wed</span>
+                                        </label>
+                                    </div>
+                                    <div class="col">
+                                        <input type="checkbox" class="btn-check" name="selected_days" value="thursday" id="day-thu">
+                                        <label class="btn btn-outline-secondary w-100 rounded-lg border-2 hover:shadow transition-all" for="day-thu">
+                                            <span class="font-semibold">Thu</span>
+                                        </label>
+                                    </div>
+                                    <div class="col">
+                                        <input type="checkbox" class="btn-check" name="selected_days" value="friday" id="day-fri">
+                                        <label class="btn btn-outline-secondary w-100 rounded-lg border-2 hover:shadow transition-all" for="day-fri">
+                                            <span class="font-semibold">Fri</span>
+                                        </label>
+                                    </div>
+                                    <div class="col">
+                                        <input type="checkbox" class="btn-check" name="selected_days" value="saturday" id="day-sat">
+                                        <label class="btn btn-outline-secondary w-100 rounded-lg border-2 hover:shadow transition-all" for="day-sat">
+                                            <span class="font-semibold">Sat</span>
+                                        </label>
+                                    </div>
+                                    <div class="col">
+                                        <input type="checkbox" class="btn-check" name="selected_days" value="sunday" id="day-sun">
+                                        <label class="btn btn-outline-secondary w-100 rounded-lg border-2 hover:shadow transition-all" for="day-sun">
+                                            <span class="font-semibold">Sun</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 d-flex align-items-center justify-content-center gap-3 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 border-0 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 mt-2">
+                            <i class="bi bi-calendar-plus fs-5"></i>
+                            <span class="font-bold">Create Availability Slots</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
     {% endif %}
 
-    <div class="schedule-header">
+    <div class="schedule-header mt-5 pt-4">
         <h5><i class="bi bi-calendar3"></i> Your Availability Schedule</h5>
     </div>
 
@@ -66,6 +293,7 @@
                     <th><i class="bi bi-clock"></i> Start Time</th>
                     <th><i class="bi bi-clock-fill"></i> End Time</th>
                     <th><i class="bi bi-info-circle"></i> Status</th>
+                    <th><i class="bi bi-gear-fill"></i> Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -100,6 +328,23 @@
                             </span>
                         {% endif %}
                     </td>
+                    <td>
+                        {% if slot.is_available %}
+                            <button type="button"
+                                    class="btn btn-sm btn-outline-danger rounded-lg border-2 hover:shadow-md transition-all duration-300 delete-slot-btn"
+                                    data-slot-id="{{ slot.id }}"
+                                    data-slot-date="{{ slot.date|date:'M d, Y' }}"
+                                    data-slot-time="{{ slot.start_time|time:'g:i A' }}"
+                                    data-service-name="{% if slot.service %}{{ slot.service.name }}{% else %}General availability{% endif %}">
+                                <i class="bi bi-trash3-fill"></i>
+                                <span class="ms-1">Delete</span>
+                            </button>
+                        {% else %}
+                            <span class="text-muted small">
+                                <i class="bi bi-lock-fill"></i> Booked
+                            </span>
+                        {% endif %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -114,4 +359,178 @@
     {% endif %}
 </div>
 
+{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Enhanced styles with Tailwind-like effects */
+.preset-btn.active {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    color: white;
+    border-color: #4f46e5;
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+    transform: translateY(-2px);
+}
+
+.nav-pills .nav-link.active {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+}
+
+.btn-check:checked + .btn-outline-primary {
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
+    border-color: #4f46e5;
+    color: white;
+    box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.3);
+}
+
+.btn-check:checked + .btn-outline-secondary {
+    background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+    border-color: #6366f1;
+    color: white;
+    box-shadow: 0 2px 4px -1px rgba(99, 102, 241, 0.3);
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #818cf8;
+    box-shadow: 0 0 0 3px rgba(129, 140, 248, 0.2);
+}
+
+/* Delete button styling */
+.delete-slot-btn {
+    font-size: 0.875rem;
+    padding: 0.375rem 0.75rem;
+    font-weight: 600;
+}
+
+.delete-slot-btn:hover {
+    background-color: #dc2626;
+    color: white;
+    border-color: #dc2626;
+    transform: translateY(-1px);
+}
+
+.delete-slot-btn i {
+    font-size: 0.95rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Pattern Radio Buttons - Show/Hide Custom Days
+    const patternRadios = document.querySelectorAll('input[name="repeat_pattern"]');
+    const customDaysContainer = document.getElementById('customDaysContainer');
+
+    patternRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+            customDaysContainer.style.display = this.value === 'custom' ? 'block' : 'none';
+        });
+    });
+
+    // Preset Buttons
+    const presetButtons = document.querySelectorAll('.preset-btn');
+    const startDateInput = document.getElementById('bulkStartDate');
+    const endDateInput = document.getElementById('bulkEndDate');
+
+    // Helper function to format date as YYYY-MM-DD
+    function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+
+    presetButtons.forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            const days = parseInt(this.dataset.days);
+
+            // Use current start date if exists, otherwise use tomorrow
+            let startDate;
+            if (startDateInput.value) {
+                // Use existing start date
+                startDate = new Date(startDateInput.value);
+            } else {
+                // Default to tomorrow
+                const today = new Date();
+                startDate = new Date(today);
+                startDate.setDate(today.getDate() + 1);
+            }
+
+            // End date = start date + days - 1
+            const endDate = new Date(startDate);
+            endDate.setDate(startDate.getDate() + (days - 1));
+
+            // Set dates
+            startDateInput.value = formatDate(startDate);
+            endDateInput.value = formatDate(endDate);
+
+            // Visual feedback
+            presetButtons.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Set minimum dates to tomorrow
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    const tomorrowStr = formatDate(tomorrow);
+
+    if (startDateInput) startDateInput.min = tomorrowStr;
+    if (endDateInput) endDateInput.min = tomorrowStr;
+
+    // Ensure end date is after start date
+    if (startDateInput && endDateInput) {
+        startDateInput.addEventListener('change', function() {
+            endDateInput.min = this.value;
+            if (endDateInput.value && endDateInput.value < this.value) {
+                endDateInput.value = this.value;
+            }
+            presetButtons.forEach(b => b.classList.remove('active'));
+        });
+
+        endDateInput.addEventListener('change', function() {
+            presetButtons.forEach(b => b.classList.remove('active'));
+        });
+    }
+
+    // Delete Availability Slot Handler
+    const deleteButtons = document.querySelectorAll('.delete-slot-btn');
+
+    deleteButtons.forEach(btn => {
+        btn.addEventListener('click', function() {
+            const slotId = this.dataset.slotId;
+            const slotDate = this.dataset.slotDate;
+            const slotTime = this.dataset.slotTime;
+            const serviceName = this.dataset.serviceName;
+
+            // Confirmation dialog
+            const confirmMessage = `Are you sure you want to delete this availability slot?\n\nService: ${serviceName}\nDate: ${slotDate}\nTime: ${slotTime}\n\nThis action cannot be undone.`;
+
+            if (confirm(confirmMessage)) {
+                // Create a form and submit it
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = `/delete-availability/${slotId}/`;
+
+                // Add CSRF token
+                const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+                const csrfInput = document.createElement('input');
+                csrfInput.type = 'hidden';
+                csrfInput.name = 'csrfmiddlewaretoken';
+                csrfInput.value = csrfToken;
+                form.appendChild(csrfInput);
+
+                // Append to body and submit
+                document.body.appendChild(form);
+                form.submit();
+            }
+        });
+    });
+});
+</script>
 {% endblock %}

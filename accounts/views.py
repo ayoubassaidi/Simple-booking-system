@@ -302,6 +302,41 @@ def dashboard(request):
             duration = (end_datetime - start_datetime).total_seconds() / 3600
             total_hours += duration
 
+        # Calendar data - get bookings grouped by date for calendar view
+        import calendar
+        import json
+
+        # Get current month and year
+        now = datetime.now()
+        current_year = now.year
+        current_month = now.month
+
+        # Get all bookings for the next 3 months for calendar
+        end_date = now + timedelta(days=90)
+        calendar_bookings = provider_bookings.filter(
+            date__gte=today,
+            date__lte=end_date
+        ).exclude(status='cancelled')
+
+        # Group bookings by date
+        bookings_by_date = {}
+        for booking in calendar_bookings:
+            date_str = booking.date.isoformat()
+            if date_str not in bookings_by_date:
+                bookings_by_date[date_str] = []
+            bookings_by_date[date_str].append({
+                'id': booking.id,
+                'service': booking.service.name,
+                'customer': booking.customer.get_full_name() or booking.customer.username,
+                'time': booking.start_time.strftime('%H:%M'),
+                'end_time': booking.end_time.strftime('%H:%M'),
+                'status': booking.status,
+                'price': str(booking.price)
+            })
+
+        # Convert to JSON for JavaScript
+        bookings_json = json.dumps(bookings_by_date)
+
         context.update({
             'total_bookings': total_bookings,
             'total_revenue': total_revenue,
@@ -314,6 +349,9 @@ def dashboard(request):
             'active_services': active_services,
             'month_revenue': month_revenue,
             'total_hours': round(total_hours, 1),
+            'current_year': current_year,
+            'current_month': current_month,
+            'bookings_json': bookings_json,
         })
 
     # User (Customer) Dashboard Statistics
@@ -373,6 +411,64 @@ def dashboard(request):
         })
 
     return render(request, 'accounts/dashboard.html', context)
+
+
+@login_required
+def booking_calendar(request):
+    """Calendar view for providers to see their bookings"""
+    # Get the user's profile to check if provider
+    try:
+        user_profile = UserProfile.objects.get(user=request.user)
+        is_provider = user_profile.user_type == 'provider'
+    except UserProfile.DoesNotExist:
+        is_provider = False
+
+    # Only providers can access calendar
+    if not is_provider:
+        messages.error(request, 'Only providers can access the calendar.')
+        return redirect('dashboard')
+
+    # Get all bookings for this provider
+    provider_bookings = Booking.objects.filter(provider=request.user)
+
+    # Get current month and year
+    now = datetime.now()
+    today = now.date()
+
+    # Get all bookings for the next 3 months for calendar
+    end_date = now + timedelta(days=90)
+    calendar_bookings = provider_bookings.filter(
+        date__gte=today,
+        date__lte=end_date
+    ).exclude(status='cancelled')
+
+    # Group bookings by date
+    bookings_by_date = {}
+    for booking in calendar_bookings:
+        date_str = booking.date.isoformat()
+        if date_str not in bookings_by_date:
+            bookings_by_date[date_str] = []
+        bookings_by_date[date_str].append({
+            'id': booking.id,
+            'service': booking.service.name,
+            'customer': booking.customer.get_full_name() or booking.customer.username,
+            'time': booking.start_time.strftime('%H:%M'),
+            'end_time': booking.end_time.strftime('%H:%M'),
+            'status': booking.status,
+            'price': str(booking.price)
+        })
+
+    # Convert to JSON for JavaScript
+    import json
+    bookings_json = json.dumps(bookings_by_date)
+
+    context = {
+        'bookings_json': bookings_json,
+        'current_year': now.year,
+        'current_month': now.month,
+    }
+
+    return render(request, 'accounts/calendar.html', context)
 
 
 @login_required
